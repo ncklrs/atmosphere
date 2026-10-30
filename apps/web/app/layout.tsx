@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import "../components/lyric-stage.css";
 const geist = localFont({
   src: "../fonts/geist.woff2",
   variable: "--font-geist",

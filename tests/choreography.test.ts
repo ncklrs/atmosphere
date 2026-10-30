@@ -1,0 +1,95 @@
+import { describe, expect, it } from "vitest";
+import {
+  choreography,
+  splitPhrase,
+  writeChoreographyFrame,
+  type ChoreographyFrame,
+} from "../packages/motion-engine/choreography";
+const frame = (
+  elapsed: number,
+  intensity: "Whisper" | "Flow" | "Pulse" = "Flow",
+  reduced = false,
+) =>
+  writeChoreographyFrame(
+    { leadX: 0, leadY: 0, focusX: 0, focusY: 0, scale: 1 },
+    elapsed,
+    9000,
+    intensity,
+    reduced,
+  );
+describe("lyric choreography", () => {
+  it("assigns different full-canvas compositions deterministically", () => {
+    const cue = { startMs: 0, text: "Let the room become a river" };
+    expect(
+      new Set(
+        Array.from(
+          { length: 5 },
+          (_, i) => choreography(cue, i, "Flow").treatment,
+        ),
+      ).size,
+    ).toBe(5);
+    expect(choreography(cue, 2, "Flow")).toEqual(choreography(cue, 2, "Flow"));
+  });
+  it("groups phrases without changing or timing words", () => {
+    for (const text of [
+      "Let the room become a river",
+      "In the green beyond the glass",
+      "Only light",
+      "水の中で breathe a little",
+    ])
+      expect(splitPhrase(text).filter(Boolean).join(" ")).toBe(text);
+    const cue = {
+      startMs: 0,
+      text: "Only time",
+      words: [
+        { startMs: 0, text: "Only" },
+        { startMs: 750, text: "time" },
+      ],
+    };
+    expect(choreography(cue, 1, "Pulse").phrases).toEqual(["", "Only time"]);
+    expect(cue.words[1].startMs).toBe(750);
+  });
+  it("recomputes arrival and growth identically after seeks and pauses", () => {
+    const settled = frame(4500);
+    frame(100);
+    frame(8000);
+    expect(frame(4500)).toEqual(settled);
+    expect(frame(0).scale).toBeLessThan(frame(4500).scale);
+    expect(frame(-1000)).toEqual(frame(0));
+    expect(frame(20000)).toEqual(frame(9000));
+  });
+  it("limits intensity and removes transforms for reduced motion", () => {
+    expect(Math.abs(frame(0, "Whisper").focusY)).toBeLessThan(
+      Math.abs(frame(0, "Pulse").focusY),
+    );
+    expect(frame(0, "Pulse", true)).toEqual(frame(8000, "Pulse", true));
+    expect(frame(3000, "Pulse", true).scale).toBe(1);
+  });
+  it("shrinks long text and flags exceptionally dense lines", () => {
+    expect(
+      choreography({ startMs: 0, text: "A brief line" }, 0, "Flow").typeScale,
+    ).toBeGreaterThan(
+      choreography(
+        {
+          startMs: 0,
+          text: "A significantly longer lyric phrase with many words stretching across the entire canvas",
+        },
+        0,
+        "Flow",
+      ).typeScale,
+    );
+    expect(
+      choreography({ startMs: 0, text: "x".repeat(120) }, 0, "Flow").dense,
+    ).toBe(true);
+  });
+  it("reuses frame storage in the animation callback", () => {
+    const target: ChoreographyFrame = {
+      leadX: 0,
+      leadY: 0,
+      focusX: 0,
+      focusY: 0,
+      scale: 1,
+    };
+    expect(writeChoreographyFrame(target, 1000, 9000, "Flow")).toBe(target);
+  });
+});

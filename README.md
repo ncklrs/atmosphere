@@ -53,7 +53,8 @@ Gateway position is extrapolated before transmission and anchored to the browser
 ## Display behavior
 
 - Cinema, Canvas, Portrait and Companion follow the display container's shape; explicit choices in the lab preview their proportions.
-- Whisper, Flow and Pulse change line entrances. Reduced motion disables continuous movement. Word emphasis is supported only for real word cues supplied through the provider contract.
+- Lyrics use five full-canvas compositions: cascading phrases, split corners, monument, offset margin and horizon. Phrase scale, alignment, placement and artwork prominence change with each cue; no previous/next scrolling list is shown. The demo’s **Next lyric** button lets you compare treatments immediately.
+- Whisper, Flow and Pulse control the amount of entrance, growth and drift. Reduced motion disables continuous movement. Word emphasis is supported only for real word cues supplied through the provider contract.
 - Circadian scenes use optional approximate coordinates and an IANA timezone. Without usable solar events, fallback times are 08:00 / 18:00 / 21:00. Default sleep is 23:30–06:30. Overrides expire in one hour, and music wake is optional.
 - Brightness is **software intensity only**. Black sleep does not reduce an LCD's physical backlight or switch panel power. DDC/CI, HDMI-CEC and physical wake are disabled and unverified.
 - Album art accepts HTTPS URLs from a small fixed Spotify CDN allowlist. The browser loads these directly, without a gateway URL proxy. Other URLs and failed downloads use local artwork. The current palette uses curated original-art colors, with a contrast override; arbitrary album-derived palette extraction is deferred.

@@ -1,0 +1,451 @@
+/* Each cue composes the entire canvas; there is no scrolling lyric list. */
+.dock-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 10px;
+}
+.dock-actions button {
+  color: var(--accent);
+  padding: 10px 0;
+}
+@media (max-width: 700px) {
+  .dock-actions a {
+    display: none;
+  }
+  .dock-actions {
+    font-size: 10px;
+  }
+}
+@media (max-width: 420px) {
+  .app-header {
+    padding-inline: 4%;
+  }
+  .brand {
+    font-size: 17px;
+    gap: 7px;
+  }
+  .brand-mark {
+    width: 20px;
+  }
+  .app-header nav {
+    gap: 10px;
+  }
+  .app-header nav a {
+    font-size: 9px;
+  }
+}
+.scene-composition.choreographed {
+  display: block;
+  position: relative;
+  padding: 4% 0 3%;
+}
+.choreographed .lyric-column {
+  position: absolute;
+  inset: 4% 0 3%;
+  width: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  z-index: 1;
+}
+.choreographed .section-index,
+.choreographed .lyric-footnote {
+  position: relative;
+  z-index: 2;
+}
+.choreographed .art-column {
+  position: absolute;
+  width: 32%;
+  top: 9%;
+  right: 5%;
+  padding: 0;
+  opacity: 0.65;
+  pointer-events: none;
+}
+.choreographed .art-frame {
+  width: 100%;
+  box-shadow: none;
+}
+.choreographed .edition-caption {
+  display: none;
+}
+.kinetic-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 3% 0;
+  --focus-size: 9.5cqw;
+}
+.kinetic-stage .kinetic-copy {
+  position: absolute;
+  inset: 0;
+  max-width: none;
+  font-size: inherit;
+  line-height: 1.02;
+  opacity: 1;
+}
+.kinetic-lead,
+.kinetic-focus {
+  position: absolute;
+  display: block;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  transform-origin: left center;
+}
+.kinetic-lead {
+  font-size: clamp(18px, 3.2cqw, 62px);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+  color: var(--foreground);
+  max-width: 72%;
+}
+.kinetic-focus {
+  font-size: clamp(32px, calc(var(--focus-size) * var(--type-scale)), 190px);
+  font-weight: 500;
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+  color: var(--accent);
+  padding-bottom: 0.1em;
+}
+.kinetic-cue-mark {
+  position: absolute;
+  right: 0;
+  top: 44%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--accent);
+  opacity: 0.4;
+  font: 9px var(--font-mono);
+}
+.kinetic-cue-mark i {
+  width: 48px;
+  height: 1px;
+  background: currentColor;
+}
+.treatment-cascade .kinetic-lead {
+  left: 4%;
+  top: 35%;
+}
+.treatment-cascade .kinetic-focus {
+  left: 4%;
+  bottom: 8%;
+  width: 88%;
+}
+.treatment-split .kinetic-lead {
+  left: 6%;
+  top: 12%;
+  max-width: 48%;
+  font-size: clamp(22px, 4.6cqw, 90px);
+}
+.treatment-split .kinetic-focus {
+  right: 4%;
+  bottom: 12%;
+  width: 68%;
+  text-align: right;
+  transform-origin: right center;
+}
+.choreo-split .art-column {
+  top: 12%;
+  right: 30%;
+  width: 29%;
+  opacity: 0.3;
+}
+.treatment-monument {
+  --focus-size: 11.5cqw;
+}
+.treatment-monument .kinetic-lead {
+  left: 8%;
+  top: 20%;
+  width: 84%;
+  max-width: none;
+  text-align: center;
+  font-family: Georgia, serif;
+  font-style: italic;
+}
+.treatment-monument .kinetic-focus {
+  left: 2%;
+  top: 39%;
+  width: 96%;
+  text-align: center;
+  transform-origin: center;
+}
+.choreo-monument .art-column {
+  width: 48%;
+  left: 26%;
+  top: 4%;
+  opacity: 0.14;
+}
+.treatment-monument .kinetic-cue-mark {
+  top: 4%;
+  right: 45%;
+}
+.treatment-margin {
+  --focus-size: 8cqw;
+}
+.treatment-margin .kinetic-lead {
+  left: 48%;
+  top: 15%;
+  max-width: 50%;
+}
+.treatment-margin .kinetic-focus {
+  left: 43%;
+  top: 31%;
+  width: 55%;
+}
+.choreo-margin .art-column {
+  width: 36%;
+  left: 0;
+  top: 10%;
+  right: auto;
+  opacity: 0.75;
+}
+.treatment-margin .kinetic-cue-mark {
+  top: auto;
+  bottom: 1%;
+  right: 4%;
+}
+.treatment-horizon {
+  --focus-size: 10.6cqw;
+}
+.treatment-horizon .kinetic-lead {
+  left: 10%;
+  top: 40%;
+}
+.treatment-horizon .kinetic-focus {
+  left: 3%;
+  bottom: 4%;
+  width: 94%;
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  text-align: center;
+  transform-origin: center;
+}
+.choreo-horizon .art-column {
+  top: 1%;
+  right: 13%;
+  width: 26%;
+  opacity: 0.45;
+}
+.kinetic-stage.single-phrase .kinetic-focus {
+  top: 28%;
+  bottom: auto;
+  left: 4%;
+  width: 92%;
+  text-align: center;
+  transform-origin: center;
+}
+.kinetic-stage.kinetic-dense .kinetic-focus {
+  font-size: clamp(20px, 4cqw, 76px);
+  line-height: 1.15;
+}
+.kinetic-stage.kinetic-dense .kinetic-lead {
+  font-size: clamp(16px, 2cqw, 38px);
+}
+.choreographed[data-intensity="Whisper"] .art-column {
+  opacity: 0.35;
+}
+.high-contrast .kinetic-lead,
+.high-contrast .kinetic-focus {
+  color: #fff;
+}
+.high-contrast .choreographed .art-column {
+  opacity: 0.2;
+}
+.preview .choreographed .kinetic-focus {
+  font-size: clamp(24px, calc(var(--focus-size) * var(--type-scale)), 110px);
+}
+.preview .choreographed .kinetic-lead {
+  font-size: clamp(13px, 3.2cqw, 48px);
+}
+.preview .kinetic-cue-mark {
+  font-size: 6px;
+  gap: 7px;
+}
+.preview .kinetic-cue-mark i {
+  width: 24px;
+}
+.layout-portrait .choreographed .art-column {
+  top: 7%;
+  right: 6%;
+  width: 65%;
+}
+.layout-portrait .kinetic-stage {
+  margin: 7% 0;
+  --focus-size: 14.2cqw;
+}
+.layout-portrait .kinetic-lead {
+  font-size: clamp(21px, 6cqw, 64px);
+  max-width: 90%;
+}
+.layout-portrait .kinetic-focus {
+  line-height: 1.04;
+}
+.layout-portrait .treatment-cascade .kinetic-lead {
+  top: 49%;
+  left: 3%;
+}
+.layout-portrait .treatment-cascade .kinetic-focus {
+  bottom: 7%;
+  left: 3%;
+  width: 94%;
+}
+.layout-portrait .treatment-split .kinetic-lead {
+  top: 8%;
+  left: 3%;
+  max-width: 75%;
+  font-size: clamp(22px, 7.5cqw, 80px);
+}
+.layout-portrait .treatment-split .kinetic-focus {
+  bottom: 10%;
+  right: 3%;
+  width: 87%;
+}
+.layout-portrait .choreo-split .art-column {
+  top: 29%;
+  width: 55%;
+  right: 30%;
+  opacity: 0.32;
+}
+.layout-portrait .treatment-monument .kinetic-lead {
+  top: 30%;
+  left: 4%;
+  width: 92%;
+}
+.layout-portrait .treatment-monument .kinetic-focus {
+  top: 46%;
+  left: 2%;
+  width: 96%;
+}
+.layout-portrait .choreo-monument .art-column {
+  top: 20%;
+  width: 92%;
+  left: 4%;
+  opacity: 0.18;
+}
+.layout-portrait .treatment-margin .kinetic-lead {
+  left: 25%;
+  top: 49%;
+  width: 70%;
+}
+.layout-portrait .treatment-margin .kinetic-focus {
+  left: 17%;
+  top: 61%;
+  width: 80%;
+}
+.layout-portrait .choreo-margin .art-column {
+  top: 4%;
+  width: 58%;
+  left: 2%;
+  right: auto;
+  opacity: 0.7;
+}
+.layout-portrait .treatment-horizon .kinetic-lead {
+  top: 49%;
+  left: 3%;
+}
+.layout-portrait .treatment-horizon .kinetic-focus {
+  bottom: 5%;
+}
+.layout-portrait .choreo-horizon .art-column {
+  width: 62%;
+  top: 3%;
+  right: 5%;
+}
+.layout-portrait .kinetic-cue-mark {
+  top: 38%;
+}
+.layout-portrait .treatment-monument .kinetic-cue-mark {
+  top: 14%;
+}
+.layout-portrait .treatment-margin .kinetic-cue-mark {
+  top: 35%;
+}
+.layout-companion .kinetic-stage {
+  margin: 2% 0;
+  --focus-size: 7.5cqw;
+}
+.layout-companion .kinetic-lead {
+  font-size: clamp(13px, 2.7cqw, 28px);
+}
+.layout-companion .kinetic-focus {
+  font-size: clamp(26px, calc(var(--focus-size) * var(--type-scale)), 64px);
+}
+.layout-companion .treatment-cascade .kinetic-lead {
+  top: 20%;
+}
+.layout-companion .treatment-cascade .kinetic-focus {
+  bottom: 2%;
+}
+.layout-companion .treatment-split .kinetic-lead {
+  top: 3%;
+  font-size: 25px;
+}
+.layout-companion .treatment-monument .kinetic-lead {
+  top: 2%;
+}
+.layout-companion .treatment-monument .kinetic-focus {
+  top: 31%;
+}
+.layout-companion .treatment-margin .kinetic-lead {
+  top: 0;
+}
+.layout-companion .treatment-margin .kinetic-focus {
+  top: 25%;
+}
+.layout-companion .treatment-horizon .kinetic-lead {
+  top: 13%;
+}
+.layout-companion .treatment-horizon .kinetic-focus {
+  bottom: 1%;
+}
+.layout-companion .choreographed .art-column {
+  width: 22%;
+  top: 9%;
+}
+.layout-companion .choreo-margin .art-column {
+  width: 29%;
+  top: 0;
+}
+.layout-companion .choreo-monument .art-column {
+  width: 35%;
+  left: 32.5%;
+  top: 0;
+}
+.layout-companion .kinetic-cue-mark {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .choreographed .kinetic-focus {
+    left: 4%;
+    right: auto;
+    top: 44%;
+    bottom: auto;
+    width: 92%;
+    text-align: center;
+    font-size: clamp(28px, 6.5cqw, 100px);
+    line-height: 1.1;
+  }
+  .choreographed .kinetic-lead {
+    left: 6%;
+    top: 22%;
+    width: 88%;
+    max-width: none;
+    text-align: center;
+    font-family: var(--font-instrument);
+    font-size: clamp(18px, 3cqw, 48px);
+    font-style: normal;
+  }
+  .layout-portrait .choreographed .kinetic-focus {
+    font-size: clamp(28px, 10cqw, 90px);
+  }
+  .layout-portrait .choreographed .kinetic-lead {
+    font-size: clamp(18px, 5cqw, 48px);
+  }
+  .choreographed .art-column {
+    opacity: 0.18;
+  }
+}

@@ -28,7 +28,7 @@ Development host: macOS, Node.js 23.7.0, pnpm 9.12.0, local Playwright Chromium.
 - Desktop, portrait, compact and lab captures have been visually inspected. The lab adjusts the preview's aspect ratio for forced Portrait/Canvas compositions.
 - CodeRabbit CLI is installed but signed out; no external CodeRabbit review was performed. Local lint, type checking, tests and source review remain the evidence for this delivery.
 
-Final local results: **28 unit/integration tests passed across 4 files; 10 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
+Final local results: **34 unit/integration tests passed across 5 files; 18 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
 
 ## Unverified or deferred
 
@@ -60,3 +60,7 @@ pnpm start
 ```
 
 Browser tests own ports 3210 and 8787 and do not reuse another server. Gateway tests bind temporary loopback ports. Restricted execution environments may require permission for these local listeners. Browser mode is offline demo by default; select Local gateway to observe a configured Mini.
+
+## Lyric choreography refinement
+
+Replaced the fixed previous/current/next stack with five deterministic, full-canvas lyric compositions. Phrase grouping changes scale and placement without assigning or inventing word timestamps. Typography enters, grows and drifts from a pure playback-position function; Motion values update on animation frames without React frame renders. Pause freezes those transforms and seek recomputes them directly. Reduced motion keeps a static centered reading composition. Artwork placement and prominence follow the cue composition. The demo includes a phone-accessible Next lyric control. Added unit coverage for grouping, layout selection, density, frame determinism and reduced motion; browser checks cover all five treatments at the original five viewports plus 390×844, pause/seek equivalence and reduced motion.

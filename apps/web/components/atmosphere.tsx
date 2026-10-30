@@ -1,17 +1,14 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  AnimatePresence,
-  MotionConfig,
-  motion,
-  useReducedMotion,
-} from "motion/react";
+import { MotionConfig, motion, useReducedMotion } from "motion/react";
 import { useAtmosphere } from "../lib/use-atmosphere";
 import { composition, timeline } from "../../../packages/motion-engine/index";
 import { schedule, type AmbientScene } from "../../../packages/circadian/index";
 import { palettes } from "../../../packages/design-system/index";
 import Artwork from "./artwork";
+import LyricStage from "./lyric-stage";
+import { choreography } from "../../../packages/motion-engine/choreography";
 type View = "display" | "lab" | "settings" | "diagnostics";
 type Model = ReturnType<typeof useAtmosphere>;
 const formatTime = (ms: number) =>
@@ -128,7 +125,10 @@ function DisplayScene({
     settings.lyrics && lyrics?.trackKey === p.trackKey ? lyrics.cues : [];
   const { index, word } = timeline(cues, position + settings.calibrationMs);
   const current = cues[index];
-  const hasLine = active && current && current.text.trim();
+  const hasLine = !!(active && current && current.text.trim());
+  const treatment = hasLine
+    ? choreography(current, index, settings.intensity).treatment
+    : null;
   const chosen =
     settings.composition === "Auto" ? layout : settings.composition;
   const palette = palettes[demoIndex % palettes.length];
@@ -173,7 +173,11 @@ function DisplayScene({
           {scene === "ACTIVE" ? "A ROOM FOR SOUND" : scene.replaceAll("_", " ")}
         </span>
       </div>
-      <div className="scene-composition">
+      <div
+        className={`scene-composition ${hasLine ? `choreographed choreo-${treatment}` : ""}`}
+        data-choreography={treatment ?? "artwork"}
+        data-intensity={settings.intensity}
+      >
         <div className="art-column">
           <motion.div
             className="art-frame"
@@ -201,57 +205,32 @@ function DisplayScene({
             </span>
           </div>
           {active ? (
-            <div className="lyric-window">
-              <p className="lyric-context previous">
-                {hasLine ? cues[index - 1]?.text || " " : " "}
-              </p>
-              <AnimatePresence initial={false} mode="wait">
-                <motion.div
-                  className="lyric-hero"
-                  key={`${p.trackKey}:${index}:${!!hasLine}`}
-                  initial={{
-                    opacity: 0,
-                    y:
-                      reduced || settings.intensity === "Whisper"
-                        ? 0
-                        : settings.intensity === "Pulse"
-                          ? 20
-                          : 10,
-                  }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: reduced ? 0.08 : 0.4 }}
-                >
-                  {hasLine ? (
-                    current.words?.length ? (
-                      current.words.map((w, i) => (
-                        <span
-                          key={`${w.startMs}:${i}`}
-                          className={i === word ? "word-active" : ""}
-                        >
-                          {w.text}{" "}
-                        </span>
-                      ))
-                    ) : (
-                      current.text
-                    )
-                  ) : (
-                    <span className="serif">
-                      {p.title
-                        ? "Between the lines."
-                        : "Listening for a little light."}
-                    </span>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-              <p className="lyric-context next">
-                {hasLine
-                  ? cues[index + 1]?.text || " "
-                  : lyrics
+            hasLine ? (
+              <LyricStage
+                cue={current}
+                index={index}
+                positionMs={position + settings.calibrationMs}
+                playing={p.state === "playing"}
+                intensity={settings.intensity}
+                reduced={!!reduced}
+                word={word}
+              />
+            ) : (
+              <div className="lyric-window">
+                <div className="lyric-hero">
+                  <span className="serif">
+                    {p.title
+                      ? "Between the lines."
+                      : "Listening for a little light."}
+                  </span>
+                </div>
+                <p className="lyric-context next">
+                  {lyrics
                     ? "A moment for the music."
                     : "Artwork only · synchronized lyrics unavailable"}
-              </p>
-            </div>
+                </p>
+              </div>
+            )
           ) : (
             <div className="ambient-copy">
               <span
@@ -429,10 +408,10 @@ function Lab({ model }: { model: Model }) {
           />
           <p className="helper">
             {settings.intensity === "Whisper"
-              ? "Barely there. A quieter kind of movement."
+              ? "Quiet placements. Soft scale. Almost still."
               : settings.intensity === "Flow"
-                ? "Soft entrances. Space between every line."
-                : "More expressive entrances. Always legible."}
+                ? "A new composition for every line. Phrases drift, expand, and find their place."
+                : "Bolder scale, sweeping entrances, and full-canvas lyric moments."}
           </p>
           <label className="switch-row">
             Show synchronized lyrics
@@ -882,7 +861,31 @@ export default function Atmosphere({ view }: { view: View }) {
                   {model.playback.state === "paused" ? "PAUSED" : "LINE LYRICS"}
                 </span>
                 <Transport model={model} compact />
-                <Link href="/lab">Tune the atmosphere ↗</Link>
+                <div className="dock-actions">
+                  {model.settings.source === "demo" && model.lyrics && (
+                    <button
+                      aria-label="Next lyric"
+                      onClick={() => {
+                        const cues = model.lyrics!.cues;
+                        const next =
+                          cues.find(
+                            (cue) =>
+                              cue.text.trim() &&
+                              cue.startMs >
+                                model.position + model.settings.calibrationMs,
+                          ) ?? cues[0];
+                        if (next)
+                          model.transport(
+                            "seek",
+                            next.startMs + 1000 - model.settings.calibrationMs,
+                          );
+                      }}
+                    >
+                      Next lyric ↗
+                    </button>
+                  )}
+                  <Link href="/lab">Tune the atmosphere ↗</Link>
+                </div>
               </div>
             </main>
           ) : view === "lab" ? (
