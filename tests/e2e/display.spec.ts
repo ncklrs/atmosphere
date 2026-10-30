@@ -1,5 +1,6 @@
 import { test, expect, type WebSocketRoute } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
+import { demoPlayback } from "../../packages/fixtures/index";
 const settings = {
   circadian: { timezone: "UTC" },
   override: { scene: "AMBIENT_DAY", expiresAt: 4102444800000 },
@@ -45,7 +46,7 @@ for (const [width, height, layout] of [
       ),
     ).toBe(true);
     await mkdir("test-results/screenshots", { recursive: true });
-    await expect(page.locator(".art-frame")).toHaveCSS("opacity", "1");
+    await expect(page.locator(".artwork")).toHaveCount(0);
     await expect(page.locator(".lyric-hero")).toHaveCSS("opacity", "1");
     await page.screenshot({
       path: `test-results/screenshots/display-${width}x${height}.png`,
@@ -66,7 +67,19 @@ test("demo seeks, skips and handles lyric gaps", async ({ page }) => {
   await page
     .getByRole("slider", { name: "Demo playback position" })
     .fill("13000");
-  await expect(page.locator(".lyric-hero")).toContainText("Between the lines");
+  await expect(page.locator(".scene-composition")).toHaveAttribute(
+    "data-choreography",
+    "ambient",
+  );
+  await expect(page.locator(".artwork")).toHaveCount(0);
+  await expect(page.locator(".lyric-hero")).toHaveCount(0);
+  await expect(page.locator(".palette-backdrop")).toBeVisible();
+  await page.screenshot({ path: "test-results/screenshots/ambient-break.png" });
+  await page
+    .getByRole("slider", { name: "Demo playback position" })
+    .fill("20000");
+  await expect(page.locator(".kinetic-stage")).toBeVisible();
+  await expect(page.locator(".artwork")).toHaveCount(0);
   await page.getByRole("button", { name: "Next demo track" }).click();
   await expect(page.locator(".now-playing h2")).toHaveText("After the sun");
 });
@@ -153,4 +166,31 @@ test("offline demo has no external asset dependencies", async ({
     "data-state",
     "paused",
   );
+});
+test("missing lyrics stay ambient instead of showing album art or filler", async ({
+  page,
+}) => {
+  await page.routeWebSocket("ws://127.0.0.1:8787/events", (socket) =>
+    socket.send(
+      JSON.stringify({
+        type: "snapshot",
+        playback: demoPlayback(0, 0, 10),
+        lyrics: null,
+        connected: true,
+        sentAt: Date.now(),
+      }),
+    ),
+  );
+  await page.goto("/settings");
+  await page
+    .getByRole("button", { name: "Local gateway", exact: true })
+    .click();
+  await page.getByRole("link", { name: "Display", exact: true }).click();
+  await expect(page.locator(".scene-composition")).toHaveAttribute(
+    "data-choreography",
+    "ambient",
+  );
+  await expect(page.locator(".artwork")).toHaveCount(0);
+  await expect(page.locator(".lyric-hero")).toHaveCount(0);
+  await expect(page.locator(".palette-backdrop")).toBeVisible();
 });

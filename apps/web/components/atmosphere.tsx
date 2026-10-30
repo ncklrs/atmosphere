@@ -126,6 +126,9 @@ function DisplayScene({
   const { index, word } = timeline(cues, position + settings.calibrationMs);
   const current = cues[index];
   const hasLine = !!(active && current && current.text.trim());
+  const lyricMode = active && settings.lyrics;
+  const ambientBreak = lyricMode && !hasLine;
+  const showArtwork = !lyricMode;
   const treatment = hasLine
     ? choreography(current, index, settings.intensity).treatment
     : null;
@@ -174,106 +177,112 @@ function DisplayScene({
         </span>
       </div>
       <div
-        className={`scene-composition ${hasLine ? `choreographed choreo-${treatment}` : ""}`}
-        data-choreography={treatment ?? "artwork"}
+        className={`scene-composition ${hasLine ? `choreographed choreo-${treatment}` : ambientBreak ? "ambient-break" : ""}`}
+        data-choreography={ambientBreak ? "ambient" : (treatment ?? "artwork")}
         data-intensity={settings.intensity}
       >
-        <div className="art-column">
-          <motion.div
-            className="art-frame"
-            key={p.trackKey}
-            initial={{ opacity: 0.3, scale: reduced ? 1 : 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: reduced ? 0.08 : 1.1 }}
-          >
-            <Artwork variant={demoIndex} url={p.artworkUrl} />
-          </motion.div>
-          <div className="edition-caption">
-            <span>
-              ATMOSPHERE, STUDY {String(demoIndex + 1).padStart(2, "0")}
-            </span>
-            <span>↗</span>
-          </div>
-        </div>
-        <div className={`lyric-column ${hasLine ? "" : "art-only"}`}>
-          <div className="section-index">
-            <span>{active ? "IN THIS MOMENT" : "LET THE ROOM BREATHE"}</span>
-            <span>
-              {active && index >= 0
-                ? `${String(index + 1).padStart(2, "0")} / ${String(cues.length).padStart(2, "0")}`
-                : "○"}
-            </span>
-          </div>
-          {active ? (
-            hasLine ? (
-              <LyricStage
-                cue={current}
-                index={index}
-                positionMs={position + settings.calibrationMs}
-                playing={p.state === "playing"}
-                intensity={settings.intensity}
-                reduced={!!reduced}
-                word={word}
-              />
-            ) : (
-              <div className="lyric-window">
-                <div className="lyric-hero">
-                  <span className="serif">
-                    {p.title
-                      ? "Between the lines."
-                      : "Listening for a little light."}
-                  </span>
-                </div>
-                <p className="lyric-context next">
-                  {lyrics
-                    ? "A moment for the music."
-                    : "Artwork only · synchronized lyrics unavailable"}
-                </p>
-              </div>
-            )
-          ) : (
-            <div className="ambient-copy">
-              <span
-                className="ambient-time"
-                style={{
-                  transform: `translate(${(Math.floor((clock?.getMinutes() ?? 0) / 10) % 3) - 1}px, ${Math.floor((clock?.getMinutes() ?? 0) / 20) - 1}px)`,
-                }}
-              >
-                {time}
-              </span>
-              <h1>
-                {sceneNames[ambient.scene]}
-                <span className="accent">.</span>
-              </h1>
-              <p>Nothing to do. Just be here.</p>
-            </div>
-          )}
-          <div className="lyric-footnote">
-            <span>
-              {p.state === "paused"
-                ? "Ⅱ PAUSED · TIMELINE FROZEN"
-                : hasLine
-                  ? lyrics?.timing === "word"
-                    ? "WORD-SYNCHRONIZED"
-                    : "LINE-SYNCHRONIZED"
-                  : "ROOM TO LISTEN"}
-            </span>
-            <div
-              className={`sound-bars ${p.state !== "playing" ? "still" : ""}`}
-              aria-hidden="true"
+        {showArtwork && (
+          <div className="art-column">
+            <motion.div
+              className="art-frame"
+              key={p.trackKey}
+              initial={{ opacity: 0.3, scale: reduced ? 1 : 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: reduced ? 0.08 : 1.1 }}
             >
-              <i />
-              <i />
-              <i />
-              <i />
-              <i />
+              <Artwork variant={demoIndex} url={p.artworkUrl} />
+            </motion.div>
+            <div className="edition-caption">
+              <span>
+                ATMOSPHERE, STUDY {String(demoIndex + 1).padStart(2, "0")}
+              </span>
+              <span>↗</span>
             </div>
           </div>
-        </div>
+        )}
+        {!ambientBreak && (
+          <div className={`lyric-column ${hasLine ? "" : "art-only"}`}>
+            <div className="section-index">
+              <span>{active ? "IN THIS MOMENT" : "LET THE ROOM BREATHE"}</span>
+              <span>
+                {active && index >= 0
+                  ? `${String(index + 1).padStart(2, "0")} / ${String(cues.length).padStart(2, "0")}`
+                  : "○"}
+              </span>
+            </div>
+            {active ? (
+              hasLine ? (
+                <LyricStage
+                  cue={current}
+                  index={index}
+                  positionMs={position + settings.calibrationMs}
+                  playing={p.state === "playing"}
+                  intensity={settings.intensity}
+                  reduced={!!reduced}
+                  word={word}
+                />
+              ) : (
+                <div className="lyric-window">
+                  <div className="lyric-hero">
+                    <span className="serif">
+                      {p.title
+                        ? "Between the lines."
+                        : "Listening for a little light."}
+                    </span>
+                  </div>
+                  <p className="lyric-context next">
+                    {lyrics
+                      ? "A moment for the music."
+                      : "Artwork only · synchronized lyrics unavailable"}
+                  </p>
+                </div>
+              )
+            ) : (
+              <div className="ambient-copy">
+                <span
+                  className="ambient-time"
+                  style={{
+                    transform: `translate(${(Math.floor((clock?.getMinutes() ?? 0) / 10) % 3) - 1}px, ${Math.floor((clock?.getMinutes() ?? 0) / 20) - 1}px)`,
+                  }}
+                >
+                  {time}
+                </span>
+                <h1>
+                  {sceneNames[ambient.scene]}
+                  <span className="accent">.</span>
+                </h1>
+                <p>Nothing to do. Just be here.</p>
+              </div>
+            )}
+            <div className="lyric-footnote">
+              <span>
+                {p.state === "paused"
+                  ? "Ⅱ PAUSED · TIMELINE FROZEN"
+                  : hasLine
+                    ? lyrics?.timing === "word"
+                      ? "WORD-SYNCHRONIZED"
+                      : "LINE-SYNCHRONIZED"
+                    : "ROOM TO LISTEN"}
+              </span>
+              <div
+                className={`sound-bars ${p.state !== "playing" ? "still" : ""}`}
+                aria-hidden="true"
+              >
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <div className="scene-bottom">
         <div className="now-playing">
-          <Artwork variant={demoIndex} small url={p.artworkUrl} />
+          {showArtwork && (
+            <Artwork variant={demoIndex} small url={p.artworkUrl} />
+          )}
           <div>
             <h2>{p.title || "Your room, in a different light"}</h2>
             <p>

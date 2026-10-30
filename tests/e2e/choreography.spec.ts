@@ -57,6 +57,7 @@ for (const [width, height] of [
           -2,
         );
       expect(await page.locator(".lyric-context.previous").count()).toBe(0);
+      await expect(page.locator(".artwork")).toHaveCount(0);
       await page.screenshot({
         path: `test-results/screenshots/choreography/${width}x${height}-${name}.png`,
       });

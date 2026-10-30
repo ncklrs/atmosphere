@@ -46,17 +46,18 @@ The offline demo uses original timestamped line cues. Live synchronized lyrics a
 WIIM_HOST=192.168.1.42 LYRICS_PROVIDER=lrclib pnpm dev
 ```
 
-The provider requires matching artist/title and duration within three seconds, and checks album when both sides supply it. It accepts actual LRC timestamps, never estimates word timings, and falls back to artwork with contextual copy on no match, instrumental material, timeout or outage. Positive lyric calibration in the lab advances the lyric clock. Lyrics are cached in memory for one hour (misses for one minute), bounded to 100 entries; no lyric files or commercial redistribution service are created.
+The provider requires matching artist/title and duration within three seconds, and checks album when both sides supply it. It accepts actual LRC timestamps, never estimates word timings, and keeps the ambient backdrop on no match, instrumental material, timeout or outage while lyric mode is enabled. Positive lyric calibration in the lab advances the lyric clock. Lyrics are cached in memory for one hour (misses for one minute), bounded to 100 entries; no lyric files or commercial redistribution service are created.
 
 Gateway position is extrapolated before transmission and anchored to the browser's own monotonic clock on receipt. Small drift is smoothed; pause, seek and new-track observations snap immediately. Interpolation stops after six seconds without a fresh sample. Timing accuracy still depends on device observations, network latency and the actual audio output delay.
 
 ## Display behavior
 
 - Cinema, Canvas, Portrait and Companion follow the display container's shape; explicit choices in the lab preview their proportions.
-- Lyrics use five full-canvas compositions: cascading phrases, split corners, monument, offset margin and horizon. Phrase scale, alignment, placement and artwork prominence change with each cue; no previous/next scrolling list is shown. The demo’s **Next lyric** button lets you compare treatments immediately.
+- Lyrics use five full-canvas compositions: cascading phrases, split corners, monument, offset margin and horizon. Phrase scale, alignment and placement change with each cue; no previous/next scrolling list is shown. The demo’s **Next lyric** button lets you compare treatments immediately.
 - Whisper, Flow and Pulse control the amount of entrance, growth and drift. Reduced motion disables continuous movement. Word emphasis is supported only for real word cues supplied through the provider contract.
 - Circadian scenes use optional approximate coordinates and an IANA timezone. Without usable solar events, fallback times are 08:00 / 18:00 / 21:00. Default sleep is 23:30–06:30. Overrides expire in one hour, and music wake is optional.
 - Brightness is **software intensity only**. Black sleep does not reduce an LCD's physical backlight or switch panel power. DDC/CI, HDMI-CEC and physical wake are disabled and unverified.
+- Lyric mode has no album art, including the footer thumbnail. Musical breaks and unavailable lyrics leave just the ambient backdrop, without filler text or an album card. Artwork is reserved for the explicit artwork view (lyrics disabled) and idle scenes.
 - Album art accepts HTTPS URLs from a small fixed Spotify CDN allowlist. The browser loads these directly, without a gateway URL proxy. Other URLs and failed downloads use local artwork. The current palette uses curated original-art colors, with a contrast override; arbitrary album-derived palette extraction is deferred.
 - Settings stay in this browser's local storage. Demo assets and fonts have no runtime third-party dependency. Live WiiM needs the LAN; opt-in lyrics and live CDN art need internet access.
 
