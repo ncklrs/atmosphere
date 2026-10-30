@@ -1,0 +1,62 @@
+# Implementation status
+
+## Delivery boundary
+
+The local software implementation covers M0–M4 and the software portion of M5. The hardware-dependent definition of done remains **unverified**. No WiiM Mini, Lenovo Tiny, monitor, account handoff, physical brightness adapter or wake mechanism was accessed in this development session. No hardware was purchased and no public service was deployed.
+
+The supplied nine Markdown specifications are preserved in `docs/brief`. They were treated as project reference material. The comprehensive plan was written before implementation in `IMPLEMENTATION_PLAN.md`.
+
+## Implemented
+
+| Milestone   | Delivered                                                                                                                                                                                                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M0          | pnpm workspace; Next.js 16.4.3 / React 19 / TypeScript / Tailwind 4 / Motion; shared packages; deterministic original fixtures; lint/typecheck/build/test commands                                                                                                                                                   |
+| M1          | `/display`, `/lab`, `/settings`, `/diagnostics`; four adaptive compositions; original abstract art; self-hosted fonts and license texts; three intensity presets; reduced motion; contrast override; keyboard controls; demo pause/seek/skip; missing-lyric and instrumental fallback                                |
+| M2          | Separate loopback Node gateway; read-only HTTP and WebSocket observations; fixed-origin checks; bounded protocol/command fallback; per-device self-signed TLS opt-in; private IPv4 validation; metadata normalization; explicit SSDP candidate discovery; adaptive serial polling; reconnect and stale-data behavior |
+| M3          | Provider contract; opt-in LRCLIB; strict artist/title/album/duration matching; LRC metadata/multiple timestamps/offsets/UTF-8; actual enhanced-LRC word cues; bounded memory cache and negative cache; pure timeline; calibration; no invented word timings                                                          |
+| M4          | Timezone-aware solar and fallback scenes; adjacent-day solar offsets across midnight; DST-aware local time; smooth intensity interpolation; one-hour manual overrides; optional music wake; software-black sleep; subtle ambient-clock shifting; explicit software-only brightness adapter                           |
+| M5 software | Linux user-service and desktop autostart examples; kiosk launcher; security/deployment/hardware-validation documentation; GitHub Actions workflow; reproducible browser captures                                                                                                                                     |
+
+## Verification evidence
+
+Development host: macOS, Node.js 23.7.0, pnpm 9.12.0, local Playwright Chromium. Node 22 LTS is the documented target and CI configuration; the remote CI result is not implied by local checks.
+
+- Dependency installation completed; the lockfile is committed. A `tslib` override selects available version 2.8.1 because the selected dependency graph initially requested an unavailable registry tarball.
+- Typecheck and lint passed. Next.js and the separate ESM gateway production bundle built successfully.
+- Unit/integration suite verifies playback drift/seek/pause/reanchoring/staleness; malformed snapshot rejection; WiiM hex and metadata fallbacks; private addresses, redirects, timeouts and safe art hosts; actual HTTP/WS streaming and device outage/recovery; LRC offsets/word timing/provider mismatch/cache; solar/DST/midnight/polar fallback/overrides/settings validation.
+- Browser suite verifies five display viewports (1920×1080, 1920×1200, 1080×1920, 1024×1024, 800×480), demo pause/seek/skip/gaps, persistence, reduced motion, sleep/wake override, diagnostics, gateway connection/reconnect, and offline demo interaction. Screenshots are written to `test-results/screenshots` and uploaded as CI artifacts when CI runs.
+- Desktop, portrait, compact and lab captures have been visually inspected. The lab adjusts the preview's aspect ratio for forced Portrait/Canvas compositions.
+- CodeRabbit CLI is installed but signed out; no external CodeRabbit review was performed. Local lint, type checking, tests and source review remain the evidence for this delivery.
+
+Final local results: **28 unit/integration tests passed across 4 files; 10 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
+
+## Unverified or deferred
+
+| Item                                              | Boundary / next action                                                                                                     |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| WiiM compatibility                                | Run the exact model/firmware/source tests in `docs/HARDWARE_VALIDATION.md`; mutual-TLS firmware is unsupported             |
+| Two-account Spotify Connect handoff               | Must be observed on the household LAN; no Atmosphere OAuth is required                                                     |
+| Under-3s track changes / under-250ms median drift | Targets only; collect physical timing measurements after calibration                                                       |
+| 60fps on Lenovo Tiny                              | Requires browser performance traces on the actual kiosk                                                                    |
+| Physical brightness / DDC/CI / power / wake       | Disabled; software darkening and black sleep do not establish panel backlight or power savings                             |
+| Live lyric coverage and rights                    | LRCLIB remains opt-in; no claim of commercial lyric licensing or universal coverage                                        |
+| Arbitrary album artwork / extracted palettes      | Fixed HTTPS Spotify CDN allowlist only; curated palettes and contrast fallback; external image palette extraction deferred |
+| mDNS discovery                                    | Deferred; explicit SSDP probe and manual private-IP fallback implemented                                                   |
+| Ambient light sensor                              | Optional extension point in the brief; no sensor hardware or driver implemented                                            |
+| Unattended OS boot/login and autostart            | Reviewed example files provided; not installed or exercised on the user's Lenovo                                           |
+| Hardware buying comparisons                       | Brief prices/model claims remain unverified; validate exact current manufacturer specs before purchase                     |
+
+## Reproduce
+
+```sh
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm exec playwright install chromium
+pnpm test:e2e
+pnpm start
+```
+
+Browser tests own ports 3210 and 8787 and do not reuse another server. Gateway tests bind temporary loopback ports. Restricted execution environments may require permission for these local listeners. Browser mode is offline demo by default; select Local gateway to observe a configured Mini.

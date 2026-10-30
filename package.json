@@ -1,0 +1,46 @@
+{
+  "name": "atmosphere",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "pnpm": {
+    "overrides": {
+      "tslib": "2.8.1"
+    }
+  },
+  "scripts": {
+    "dev": "concurrently -k -n gateway,web 'pnpm gateway' 'pnpm --filter @atmosphere/web dev'",
+    "gateway": "tsx apps/gateway/src/main.ts",
+    "discover": "tsx apps/gateway/src/discover.ts",
+    "build": "pnpm --filter @atmosphere/web build && tsup apps/gateway/src/main.ts --format esm --platform node --out-dir apps/gateway/dist --no-splitting",
+    "start": "concurrently -k -n gateway,web 'node apps/gateway/dist/main.mjs' 'pnpm --filter @atmosphere/web start'",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit && pnpm --filter @atmosphere/web typecheck",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "suncalc": "1.9.0",
+    "ws": "8.18.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^22.19.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/suncalc": "^1.9.2",
+    "@types/ws": "^8.18.1",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.4.3",
+    "prettier": "3.6.2",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.2",
+    "vitest": "^3.2.4"
+  }
+}

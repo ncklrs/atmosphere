@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Atmosphere Kiosk
+Comment=Start the local ambient music display after desktop login
+Exec=/home/YOUR_USER/atmosphere/scripts/kiosk.sh
+Terminal=false
+X-GNOME-Autostart-enabled=true

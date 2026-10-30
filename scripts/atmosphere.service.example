@@ -1,0 +1,18 @@
+[Unit]
+Description=Atmosphere local gateway and display
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/atmosphere
+Environment=NODE_ENV=production
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-%h/.config/atmosphere.env
+ExecStart=/usr/bin/env pnpm start
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target
