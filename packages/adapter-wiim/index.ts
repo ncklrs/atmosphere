@@ -32,7 +32,11 @@ export function normalize(
   revision: number,
 ): Playback {
   const firstText = (...values: unknown[]) =>
-    values.map(decodeHex).find((value) => value.trim()) ?? "";
+    values
+      .map(decodeHex)
+      .map((value) => value.trim())
+      .find((value) => value && !/^(?:unknow|unknown|n\/a)$/i.test(value)) ??
+    "";
   const title = firstText(status.Title, status.title, meta.Title, meta.title);
   const artist = firstText(
     status.Artist,

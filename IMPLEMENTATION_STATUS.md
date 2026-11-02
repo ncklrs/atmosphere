@@ -2,7 +2,7 @@
 
 ## Delivery boundary
 
-The local software implementation covers M0–M4 and the software portion of M5. The hardware-dependent definition of done remains **unverified**. No WiiM Mini, Lenovo Tiny, monitor, account handoff, physical brightness adapter or wake mechanism was accessed in this development session. No hardware was purchased and no public service was deployed.
+The local software implementation covers M0–M4 and the software portion of M5. The hardware-dependent definition of done remains **unverified**. On 2026-11-02 the actual WiiM Mini was discovered and its identity, read-only playback and metadata endpoints were verified from the Mac. Account handoff, calibrated audio timing, the Lenovo Tiny, monitor brightness and wake remain unverified. No hardware was purchased and no public service was deployed.
 
 The supplied nine Markdown specifications are preserved in `docs/brief`. They were treated as project reference material. The comprehensive plan was written before implementation in `IMPLEMENTATION_PLAN.md`.
 
@@ -28,23 +28,23 @@ Development host: macOS, Node.js 23.7.0, pnpm 9.12.0, local Playwright Chromium.
 - Desktop, portrait, compact and lab captures have been visually inspected. The lab adjusts the preview's aspect ratio for forced Portrait/Canvas compositions.
 - CodeRabbit CLI is installed but signed out; no external CodeRabbit review was performed. Local lint, type checking, tests and source review remain the evidence for this delivery.
 
-Final local results: **34 unit/integration tests passed across 5 files; 19 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
+Final local results: **35 unit/integration tests passed across 5 files; 19 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
 
 ## Unverified or deferred
 
-| Item                                              | Boundary / next action                                                                                                     |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| WiiM compatibility                                | Run the exact model/firmware/source tests in `docs/HARDWARE_VALIDATION.md`; mutual-TLS firmware is unsupported             |
-| Two-account Spotify Connect handoff               | Must be observed on the household LAN; no Atmosphere OAuth is required                                                     |
-| Under-3s track changes / under-250ms median drift | Targets only; collect physical timing measurements after calibration                                                       |
-| 60fps on Lenovo Tiny                              | Requires browser performance traces on the actual kiosk                                                                    |
-| Physical brightness / DDC/CI / power / wake       | Disabled; software darkening and black sleep do not establish panel backlight or power savings                             |
-| Live lyric coverage and rights                    | LRCLIB remains opt-in; no claim of commercial lyric licensing or universal coverage                                        |
-| Arbitrary album artwork / extracted palettes      | Fixed HTTPS Spotify CDN allowlist only; curated palettes and contrast fallback; external image palette extraction deferred |
-| mDNS discovery                                    | Deferred; explicit SSDP probe and manual private-IP fallback implemented                                                   |
-| Ambient light sensor                              | Optional extension point in the brief; no sensor hardware or driver implemented                                            |
-| Unattended OS boot/login and autostart            | Reviewed example files provided; not installed or exercised on the user's Lenovo                                           |
-| Hardware buying comparisons                       | Brief prices/model claims remain unverified; validate exact current manufacturer specs before purchase                     |
+| Item                                              | Boundary / next action                                                                                                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WiiM compatibility                                | Read-only HTTPS verified on Muzo_Mini / Linkplay.4.6.833047; remaining source/transport tests are in `docs/HARDWARE_VALIDATION.md`; mutual TLS is unsupported |
+| Two-account Spotify Connect handoff               | Must be observed on the household LAN; no Atmosphere OAuth is required                                                                                        |
+| Under-3s track changes / under-250ms median drift | Targets only; collect physical timing measurements after calibration                                                                                          |
+| 60fps on Lenovo Tiny                              | Requires browser performance traces on the actual kiosk                                                                                                       |
+| Physical brightness / DDC/CI / power / wake       | Disabled; software darkening and black sleep do not establish panel backlight or power savings                                                                |
+| Live lyric coverage and rights                    | LRCLIB remains opt-in; no claim of commercial lyric licensing or universal coverage                                                                           |
+| Arbitrary album artwork / extracted palettes      | Fixed HTTPS Spotify CDN allowlist only; curated palettes and contrast fallback; external image palette extraction deferred                                    |
+| mDNS discovery                                    | Deferred; explicit SSDP probe and manual private-IP fallback implemented                                                                                      |
+| Ambient light sensor                              | Optional extension point in the brief; no sensor hardware or driver implemented                                                                               |
+| Unattended OS boot/login and autostart            | Reviewed example files provided; not installed or exercised on the user's Lenovo                                                                              |
+| Hardware buying comparisons                       | Brief prices/model claims remain unverified; validate exact current manufacturer specs before purchase                                                        |
 
 ## Reproduce
 
@@ -64,3 +64,7 @@ Browser tests own ports 3210 and 8787 and do not reuse another server. Gateway t
 ## Lyric choreography refinement
 
 Replaced the fixed previous/current/next stack with five deterministic, full-canvas lyric compositions. Phrase grouping changes scale and placement without assigning or inventing word timestamps. Typography enters, grows and drifts from a pure playback-position function; Motion values update on animation frames without React frame renders. Pause freezes those transforms and seek recomputes them directly. Reduced motion keeps a static centered reading composition. Lyric mode never shows an album card or footer thumbnail. During musical gaps or missing lyrics the words clear, leaving the ambient backdrop without filler text. Explicit artwork mode (lyrics disabled) and idle scenes retain artwork. Browser assertions cover art-free lyric scenes at all six viewport sizes and the ambient musical-break transition. The demo includes a phone-accessible Next lyric control. Added unit coverage for grouping, layout selection, density, frame determinism and reduced motion; browser checks cover all five treatments at the original five viewports plus 390×844, pause/seek equivalence and reduced motion.
+
+## First real-device connection — 2026-11-02
+
+Read-only device identity, extended playback status and metadata now respond through the live local gateway. Browser source is set to Local gateway. The actual Mini requires the existing per-device self-signed HTTPS option and refuses HTTP. A real-device placeholder (`unknow`) is now filtered instead of appearing as a confident track. Live lyrics remain an explicit approval gate because they transmit track metadata to LRCLIB. See the hardware validation record for the observed/remaining boundary.

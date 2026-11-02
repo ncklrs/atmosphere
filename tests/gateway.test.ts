@@ -34,6 +34,39 @@ const waitFor = async (predicate: () => boolean) => {
   }
 };
 describe("WiiM adapter", () => {
+  it("treats observed WiiM placeholder metadata as absent, not a confident track", () => {
+    expect(
+      normalize(
+        { Title: "unknow", Artist: "unknow", Album: "unknow", status: "stop" },
+        { title: "unknow", artist: "unknow" },
+        0,
+        1,
+      ),
+    ).toMatchObject({
+      title: "",
+      artist: "",
+      album: "",
+      trackKey: "",
+      state: "stopped",
+      confidence: 0,
+    });
+    expect(
+      normalize(
+        {
+          Title: Buffer.from("unknow").toString("hex"),
+          Artist: "unknown",
+          status: "play",
+        },
+        { title: "Actual title", artist: "Actual artist" },
+        0,
+        1,
+      ),
+    ).toMatchObject({
+      title: "Actual title",
+      artist: "Actual artist",
+      confidence: 0.9,
+    });
+  });
   it("allowlists artwork without an arbitrary URL proxy", () => {
     expect(safeArtworkUrl("https://i.scdn.co/image/fixture")).toBe(
       "https://i.scdn.co/image/fixture",
