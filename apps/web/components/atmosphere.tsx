@@ -1,12 +1,15 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MotionConfig, motion, useReducedMotion } from "motion/react";
+import { MotionConfig, useReducedMotion } from "motion/react";
 import { useAtmosphere } from "../lib/use-atmosphere";
 import { composition, timeline } from "../../../packages/motion-engine/index";
 import { schedule, type AmbientScene } from "../../../packages/circadian/index";
-import { palettes } from "../../../packages/design-system/index";
-import Artwork from "./artwork";
+import {
+  palettes,
+  trackPaletteIndex,
+} from "../../../packages/design-system/index";
+import AmbientVisuals, { ambientVisuals } from "./ambient-visuals";
 import LyricStage from "./lyric-stage";
 import { choreography } from "../../../packages/motion-engine/choreography";
 type View = "display" | "lab" | "settings" | "diagnostics";
@@ -126,15 +129,18 @@ function DisplayScene({
   const { index, word } = timeline(cues, position + settings.calibrationMs);
   const current = cues[index];
   const hasLine = !!(active && current && current.text.trim());
-  const lyricMode = active && settings.lyrics;
-  const ambientBreak = lyricMode && !hasLine;
-  const showArtwork = !lyricMode;
+  const ambientBreak = active && !hasLine;
   const treatment = hasLine
     ? choreography(current, index, settings.intensity).treatment
     : null;
   const chosen =
     settings.composition === "Auto" ? layout : settings.composition;
-  const palette = palettes[demoIndex % palettes.length];
+  const palette =
+    palettes[
+      settings.source === "demo"
+        ? demoIndex % palettes.length
+        : trackPaletteIndex(p.trackKey || "ambient")
+    ];
   const time =
     clock?.toLocaleTimeString("en-US", {
       timeZone: settings.circadian.timezone,
@@ -165,6 +171,12 @@ function DisplayScene({
       }
     >
       <div className="palette-backdrop" />
+      <AmbientVisuals
+        visual={settings.ambientVisual}
+        intensity={settings.intensity}
+        focus={hasLine ? "lyrics" : "ambient"}
+        sleep={isSleep}
+      />
       <div className="scene-topline">
         <span className="eyebrow">
           <i className={`status-dot ${p.state === "playing" ? "on" : ""}`} />
@@ -177,31 +189,12 @@ function DisplayScene({
         </span>
       </div>
       <div
-        className={`scene-composition ${hasLine ? `choreographed choreo-${treatment}` : ambientBreak ? "ambient-break" : ""}`}
-        data-choreography={ambientBreak ? "ambient" : (treatment ?? "artwork")}
+        className={`scene-composition ${hasLine ? `choreographed choreo-${treatment}` : ambientBreak ? "ambient-break" : "ambient-idle"}`}
+        data-choreography={treatment ?? "ambient"}
         data-intensity={settings.intensity}
       >
-        {showArtwork && (
-          <div className="art-column">
-            <motion.div
-              className="art-frame"
-              key={p.trackKey}
-              initial={{ opacity: 0.3, scale: reduced ? 1 : 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: reduced ? 0.08 : 1.1 }}
-            >
-              <Artwork variant={demoIndex} url={p.artworkUrl} />
-            </motion.div>
-            <div className="edition-caption">
-              <span>
-                ATMOSPHERE, STUDY {String(demoIndex + 1).padStart(2, "0")}
-              </span>
-              <span>↗</span>
-            </div>
-          </div>
-        )}
         {!ambientBreak && (
-          <div className={`lyric-column ${hasLine ? "" : "art-only"}`}>
+          <div className={`lyric-column ${hasLine ? "" : "ambient-column"}`}>
             <div className="section-index">
               <span>{active ? "IN THIS MOMENT" : "LET THE ROOM BREATHE"}</span>
               <span>
@@ -210,33 +203,16 @@ function DisplayScene({
                   : "○"}
               </span>
             </div>
-            {active ? (
-              hasLine ? (
-                <LyricStage
-                  cue={current}
-                  index={index}
-                  positionMs={position + settings.calibrationMs}
-                  playing={p.state === "playing"}
-                  intensity={settings.intensity}
-                  reduced={!!reduced}
-                  word={word}
-                />
-              ) : (
-                <div className="lyric-window">
-                  <div className="lyric-hero">
-                    <span className="serif">
-                      {p.title
-                        ? "Between the lines."
-                        : "Listening for a little light."}
-                    </span>
-                  </div>
-                  <p className="lyric-context next">
-                    {lyrics
-                      ? "A moment for the music."
-                      : "Artwork only · synchronized lyrics unavailable"}
-                  </p>
-                </div>
-              )
+            {hasLine ? (
+              <LyricStage
+                cue={current}
+                index={index}
+                positionMs={position + settings.calibrationMs}
+                playing={p.state === "playing"}
+                intensity={settings.intensity}
+                reduced={!!reduced}
+                word={word}
+              />
             ) : (
               <div className="ambient-copy">
                 <span
@@ -280,9 +256,6 @@ function DisplayScene({
       </div>
       <div className="scene-bottom">
         <div className="now-playing">
-          {showArtwork && (
-            <Artwork variant={demoIndex} small url={p.artworkUrl} />
-          )}
           <div>
             <h2>{p.title || "Your room, in a different light"}</h2>
             <p>
@@ -395,12 +368,30 @@ function Lab({ model }: { model: Model }) {
           </div>
           <Transport model={model} />
           <p className="caption">
-            Original artwork & synthetic lyrics. Demo controls don’t affect your
-            WiiM.
+            {settings.source === "demo"
+              ? "Original demo lyrics. Controls don’t affect your WiiM."
+              : "Live from your WiiM. Playback stays in your music app."}
           </p>
         </div>
         <aside className="control-panel">
           <p className="eyebrow">COMPOSE YOUR ROOM</p>
+          <Choice
+            title="Ambient visuals"
+            options={ambientVisuals}
+            value={settings.ambientVisual}
+            onChange={(value) =>
+              updateSettings({
+                ambientVisual: value as typeof settings.ambientVisual,
+              })
+            }
+          />
+          <p className="helper">
+            {settings.ambientVisual === "Bloom"
+              ? "Luminous color fields, slowly unfolding."
+              : settings.ambientVisual === "Tide"
+                ? "Layered currents and shifting contours."
+                : "Sculptural orbits and drifting stardust."}
+          </p>
           <Choice
             title="Composition"
             options={["Auto", "Cinema", "Canvas", "Portrait", "Companion"]}

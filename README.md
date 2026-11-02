@@ -11,7 +11,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open [the display](http://127.0.0.1:3000/display). The visual lab, settings, and diagnostics are available from the navigation. The demo includes three original synthetic tracks/lyric sequences and original procedural artwork. It does not play audio. Pause, seek, previous and next controls affect this simulation only.
+Open [the display](http://127.0.0.1:3000/display). The visual lab, settings, and diagnostics are available from the navigation. The demo includes three original synthetic tracks/lyric sequences and original procedural ambient visuals. It does not play audio. Pause, seek, previous and next controls affect this simulation only.
 
 If port 3000 is occupied:
 
@@ -54,11 +54,12 @@ Gateway position is extrapolated before transmission and anchored to the browser
 
 - Cinema, Canvas, Portrait and Companion follow the display container's shape; explicit choices in the lab preview their proportions.
 - Lyrics use five full-canvas compositions: cascading phrases, split corners, monument, offset margin and horizon. Phrase scale, alignment and placement change with each cue; no previous/next scrolling list is shown. The demo’s **Next lyric** button lets you compare treatments immediately.
+- **Ambient visuals** in the lab offers Bloom (flowing color fields), Tide (layered contours), and Orbit (sculptural rings and particles). The visual layer continues through instrumental gaps and gets quieter behind lyrics. Whisper / Flow / Pulse also controls its speed and density. Visuals are procedural and independent of audio amplitude; the WiiM connection supplies playback metadata, not a real beat/FFT signal.
 - Whisper, Flow and Pulse control the amount of entrance, growth and drift. Reduced motion disables continuous movement. Word emphasis is supported only for real word cues supplied through the provider contract.
 - Circadian scenes use optional approximate coordinates and an IANA timezone. Without usable solar events, fallback times are 08:00 / 18:00 / 21:00. Default sleep is 23:30–06:30. Overrides expire in one hour, and music wake is optional.
 - Brightness is **software intensity only**. Black sleep does not reduce an LCD's physical backlight or switch panel power. DDC/CI, HDMI-CEC and physical wake are disabled and unverified.
-- Lyric mode has no album art, including the footer thumbnail. Musical breaks and unavailable lyrics leave just the ambient backdrop, without filler text or an album card. Artwork is reserved for the explicit artwork view (lyrics disabled) and idle scenes.
-- Album art accepts HTTPS URLs from a small fixed Spotify CDN allowlist. The browser loads these directly, without a gateway URL proxy. Other URLs and failed downloads use local artwork. The current palette uses curated original-art colors, with a contrast override; arbitrary album-derived palette extraction is deferred.
+- Lyric mode has no album art, including the footer thumbnail. Musical breaks and unavailable lyrics leave just the ambient backdrop, without filler text or an album card. Disabling lyrics gives an ambient-only view. Idle scenes use the generative visuals and a subtly shifting clock, without an album card.
+- Album art accepts HTTPS URLs from a small fixed Spotify CDN allowlist. The browser loads these directly, without a gateway URL proxy. Other URLs and failed downloads use local artwork. The current palette uses curated colors selected deterministically from track identity, with a contrast override; arbitrary album-derived palette extraction is deferred.
 - Settings stay in this browser's local storage. Demo assets and fonts have no runtime third-party dependency. Live WiiM needs the LAN; opt-in lyrics and live CDN art need internet access.
 
 ## Verify and run a production kiosk

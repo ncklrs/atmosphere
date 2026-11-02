@@ -88,7 +88,11 @@ test("lab settings persist and reduced motion is honored", async ({ page }) => {
   await page.goto("/lab");
   await page.getByRole("button", { name: "Pulse", exact: true }).click();
   await page.getByLabel("Show synchronized lyrics").uncheck();
-  await expect(page.locator(".lyric-hero")).toContainText("Between the lines");
+  await expect(page.locator(".ambient-visuals")).toHaveAttribute(
+    "data-focus",
+    "ambient",
+  );
+  await expect(page.locator(".lyric-hero")).toHaveCount(0);
   await page.getByRole("button", { name: "Portrait", exact: true }).click();
   await expect(page.locator(".display-scene")).toHaveAttribute(
     "data-layout",
@@ -100,12 +104,11 @@ test("lab settings persist and reduced motion is honored", async ({ page }) => {
   ).toHaveAttribute("aria-pressed", "true");
   expect(
     await page
-      .locator(".sound-bars i")
-      .first()
+      .locator(".field-one")
       .evaluate((el) => getComputedStyle(el).animationName),
   ).toBe("none");
-  await expect(page.locator(".art-frame")).toHaveCSS("opacity", "1");
-  await expect(page.locator(".lyric-hero")).toHaveCSS("opacity", "1");
+  await expect(page.locator(".artwork")).toHaveCount(0);
+  await expect(page.locator(".lyric-hero")).toHaveCount(0);
   await page.screenshot({
     path: "test-results/screenshots/lab.png",
     fullPage: true,

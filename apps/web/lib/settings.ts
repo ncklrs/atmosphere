@@ -5,9 +5,11 @@ import {
   type SceneOverride,
 } from "../../../packages/circadian/index";
 import type { Intensity } from "../../../packages/motion-engine/index";
+import type { AmbientVisual } from "../components/ambient-visuals";
 export interface Settings {
   source: "demo" | "gateway";
   intensity: Intensity;
+  ambientVisual: AmbientVisual;
   composition: string;
   calibrationMs: number;
   lyrics: boolean;
@@ -18,6 +20,7 @@ export interface Settings {
 export const defaults: Settings = {
   source: "demo",
   intensity: "Flow",
+  ambientVisual: "Bloom",
   composition: "Auto",
   calibrationMs: 0,
   lyrics: true,
@@ -73,6 +76,9 @@ export function validateSettings(input: unknown): Settings {
     intensity: ["Whisper", "Flow", "Pulse"].includes(s.intensity ?? "")
       ? s.intensity!
       : "Flow",
+    ambientVisual: ["Bloom", "Tide", "Orbit"].includes(s.ambientVisual ?? "")
+      ? s.ambientVisual!
+      : "Bloom",
     composition: ["Cinema", "Canvas", "Portrait", "Companion"].includes(
       s.composition ?? "",
     )
