@@ -4,15 +4,15 @@ Status: **WiiM Mini discovery and read-only HTTPS identity/playback probes verif
 
 ## Record the setup
 
-| Item                                             | Observation                                                    |
-| ------------------------------------------------ | -------------------------------------------------------------- |
-| Date / tester                                    | 2026-11-02 / read-only local observation                       |
-| WiiM model / firmware / source mode              | Muzo_Mini / Linkplay.4.6.833047 / source mode not yet recorded |
-| Lenovo model / OS / Node / Chromium              | Pending                                                        |
-| Monitor model / input / cable / mount            | Pending                                                        |
-| Network connection / approximate polling latency | Pending                                                        |
-| DDC/CI and HDMI-CEC readback                     | Unverified, disabled                                           |
-| Physical brightness / minimum night luminance    | Unverified                                                     |
+| Item                                             | Observation                                               |
+| ------------------------------------------------ | --------------------------------------------------------- |
+| Date / tester                                    | 2026-11-02 / read-only local observation                  |
+| WiiM model / firmware / source mode              | Muzo_Mini / Linkplay.4.6.833047 / source mode 31 observed |
+| Lenovo model / OS / Node / Chromium              | Pending                                                   |
+| Monitor model / input / cable / mount            | Pending                                                   |
+| Network connection / approximate polling latency | Pending                                                   |
+| DDC/CI and HDMI-CEC readback                     | Unverified, disabled                                      |
+| Physical brightness / minimum night luminance    | Unverified                                                |
 
 Keep raw responses and personal track/account data in a local, untracked observation folder. Do not commit SSIDs, MAC addresses, private device details or account identifiers to the public repository. A redacted summary should record field names, encoding and units, not household identity.
 
@@ -48,5 +48,5 @@ No hardware purchase is part of this implementation. Before choosing a compact O
 - `getPlayerStatusEx` and `getMetaInfo` responded. The gateway and browser received actual track metadata and a paused playback position.
 - Stopped metadata contained the literal vendor placeholder `unknow`; normalization now discards placeholder metadata and can fall back to useful metadata fields. A regression test covers this observation.
 - Browser Local gateway selection and Diagnostics showed source `wiim`, Gateway connected, and actual playback observations. No device playback-control commands were sent.
-- Live lyric lookup remains disabled pending explicit approval to send track metadata to LRCLIB. Raw household track observations remain outside the repository.
+- The user explicitly approved LRCLIB track-metadata lookup on 2026-11-02. Live lookup is now enabled for the local test. A lookup for the last observed track returned HTTP 200, matched artist/title/album/duration, and parsed 36 real line cues through the app provider. Raw household track observations and lyric text remain outside the repository. Actual lyric rendering against audible music is not yet verified because subsequent Mini observations reported paused/stopped.
 - Not yet verified: controlled pause/resume/seek/skip, two-account handoff, calibrated lyric drift, reboot/reconnect on the real device, Lenovo rendering and monitor power/wake.
