@@ -20,7 +20,7 @@ export interface Settings {
 export const defaults: Settings = {
   source: "demo",
   intensity: "Flow",
-  ambientVisual: "Bloom",
+  ambientVisual: "Orbit",
   composition: "Auto",
   calibrationMs: 0,
   lyrics: true,
@@ -78,7 +78,7 @@ export function validateSettings(input: unknown): Settings {
       : "Flow",
     ambientVisual: ["Bloom", "Tide", "Orbit"].includes(s.ambientVisual ?? "")
       ? s.ambientVisual!
-      : "Bloom",
+      : defaults.ambientVisual,
     composition: ["Cinema", "Canvas", "Portrait", "Companion"].includes(
       s.composition ?? "",
     )

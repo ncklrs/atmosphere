@@ -14,7 +14,7 @@ describe("ambient visual preferences", () => {
       calibrationMs: 250,
       intensity: "Pulse",
       lyrics: false,
-      ambientVisual: "Bloom",
+      ambientVisual: "Orbit",
     });
   });
   it("persists supported presets and rejects malformed visual names", () => {
@@ -26,6 +26,6 @@ describe("ambient visual preferences", () => {
     );
     expect(
       validateSettings({ ambientVisual: "url(untrusted)" }).ambientVisual,
-    ).toBe("Bloom");
+    ).toBe("Orbit");
   });
 });
