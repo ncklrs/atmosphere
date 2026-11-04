@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MotionConfig, useReducedMotion } from "motion/react";
 import { useArtworkPalette } from "../lib/use-artwork-palette";
@@ -11,12 +12,14 @@ import {
   trackPaletteIndex,
 } from "../../../packages/design-system/index";
 import { visualPresets } from "../../../packages/design-system/visuals";
-import { milkdropPresets } from "../../../packages/design-system/milkdrop";
-import MilkdropControls from "./milkdrop-controls";
-import type { MilkdropStatus } from "./milkdrop-canvas";
 import AmbientVisuals, { ambientVisuals } from "./ambient-visuals";
 import LyricStage from "./lyric-stage";
 import { choreography } from "../../../packages/motion-engine/choreography";
+import { useAudioSession } from "./audio-input-provider";
+import SoundLayerControls, { SoundQuickStart } from "./sound-layer-controls";
+const SoundLayerCanvas = dynamic(() => import("./sound-layer-canvas"), {
+  ssr: false,
+});
 type View = "display" | "lab" | "settings" | "diagnostics";
 type Model = ReturnType<typeof useAtmosphere>;
 const formatTime = (ms: number) =>
@@ -89,11 +92,9 @@ function Transport({
 function DisplayScene({
   model,
   preview = false,
-  onVisualStatus,
 }: {
   model: Model;
   preview?: boolean;
-  onVisualStatus?: (status: MilkdropStatus) => void;
 }) {
   const {
     playback: p,
@@ -107,6 +108,7 @@ function DisplayScene({
   const container = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState("Cinema");
   const reduced = useReducedMotion();
+  const audio = useAudioSession();
   useEffect(() => {
     if (!container.current) return;
     const observer = new ResizeObserver((entries) => {
@@ -130,6 +132,10 @@ function DisplayScene({
     [minuteEpoch, settings.circadian, settings.override, p.state],
   );
   const isSleep = ambient.scene === "SLEEP" && !ambient.musicAwake;
+  useEffect(() => {
+    if (isSleep && !["idle", "error"].includes(audio.state.phase))
+      audio.session.stop();
+  }, [isSleep, audio.session, audio.state.phase]);
   const active = p.state === "playing" || p.state === "paused";
   const cues =
     settings.lyrics && lyrics?.trackKey === p.trackKey ? lyrics.cues : [];
@@ -184,10 +190,6 @@ function DisplayScene({
     >
       <div className="palette-backdrop" />
       <AmbientVisuals
-        engine={settings.visualEngine}
-        milkdrop={settings.milkdrop}
-        milkdropPreset={model.milkdropPreset}
-        onVisualStatus={onVisualStatus}
         prism={settings.prism}
         palette={palette}
         identity={p.trackKey || "ambient"}
@@ -196,6 +198,15 @@ function DisplayScene({
         focus={hasLine ? "lyrics" : "ambient"}
         sleep={isSleep}
       />
+      {!isSleep && settings.soundLayer.enabled && (
+        <SoundLayerCanvas
+          controls={settings.soundLayer}
+          visual={model.visual}
+          palette={palette}
+          lyrics={hasLine}
+          session={audio.session}
+        />
+      )}
       <div className="scene-topline">
         <span className="eyebrow">
           <i className={`status-dot ${p.state === "playing" ? "on" : ""}`} />
@@ -363,9 +374,6 @@ function Choice({
 }
 function Lab({ model }: { model: Model }) {
   const { settings, updateSettings } = model;
-  const [milkdropStatus, setMilkdropStatus] =
-    useState<MilkdropStatus>("loading");
-  const isMilkdrop = settings.visualEngine === "milkdrop";
   return (
     <main className="workspace lab">
       <div className="page-heading">
@@ -384,15 +392,12 @@ function Lab({ model }: { model: Model }) {
         </p>
       </div>
       <div className="lab-grid">
-        <div>
+        <div className="lab-stage">
           <div className="preview">
-            <DisplayScene
-              model={model}
-              preview
-              onVisualStatus={setMilkdropStatus}
-            />
+            <DisplayScene model={model} preview />
           </div>
           <Transport model={model} />
+          {settings.soundLayer.enabled && <SoundQuickStart />}
           <p className="caption">
             {settings.source === "demo"
               ? "Original demo lyrics. Controls don’t affect your WiiM."
@@ -401,21 +406,6 @@ function Lab({ model }: { model: Model }) {
         </div>
         <aside className="control-panel">
           <p className="eyebrow">COMPOSE YOUR ROOM</p>
-          <Choice
-            title="Visual engine"
-            options={["Ambient", "Milkdrop"]}
-            value={isMilkdrop ? "Milkdrop" : "Ambient"}
-            onChange={(value) =>
-              updateSettings({
-                visualEngine: value === "Milkdrop" ? "milkdrop" : "ambient",
-                ambientVisual: model.visual,
-                milkdrop: {
-                  ...settings.milkdrop,
-                  preset: model.milkdropPreset,
-                },
-              })
-            }
-          />
           <label className="switch-row">
             Auto per song
             <input
@@ -426,14 +416,7 @@ function Lab({ model }: { model: Model }) {
                 updateSettings({
                   autoVisuals: event.target.checked,
                   ...(!event.target.checked
-                    ? isMilkdrop
-                      ? {
-                          milkdrop: {
-                            ...settings.milkdrop,
-                            preset: model.milkdropPreset,
-                          },
-                        }
-                      : { ambientVisual: model.visual }
+                    ? { ambientVisual: model.visual }
                     : {}),
                 })
               }
@@ -441,83 +424,71 @@ function Lab({ model }: { model: Model }) {
           </label>
           <p className="helper">
             {settings.autoVisuals
-              ? `Now showing ${isMilkdrop ? milkdropPresets[model.milkdropPreset].title : model.visual}. ${isMilkdrop ? "A new preset from this collection for each song." : "A new background for each song."}`
+              ? `Now showing ${model.visual}. A new background for each song.`
               : "Choose a background, or rotate automatically when songs change."}
           </p>
-          {isMilkdrop ? (
-            <MilkdropControls
-              controls={settings.milkdrop}
-              active={model.milkdropPreset}
-              status={milkdropStatus}
-              onChange={(patch) =>
-                updateSettings({ milkdrop: { ...settings.milkdrop, ...patch } })
-              }
-              onSelect={(preset) =>
-                updateSettings({
-                  autoVisuals: false,
-                  milkdrop: { ...settings.milkdrop, preset },
-                })
-              }
-            />
-          ) : (
-            <>
-              <Choice
-                title="Ambient visuals"
-                options={ambientVisuals}
-                value={model.visual}
-                onChange={(value) =>
-                  updateSettings({
-                    ambientVisual: value as typeof settings.ambientVisual,
-                    autoVisuals: false,
-                  })
-                }
-              />
+          <Choice
+            title="Ambient visuals"
+            options={ambientVisuals}
+            value={model.visual}
+            onChange={(value) =>
+              updateSettings({
+                ambientVisual: value as typeof settings.ambientVisual,
+                autoVisuals: false,
+              })
+            }
+          />
+          <p className="helper">{visualPresets[model.visual].description}</p>
+          {model.visual === "Prism" && (
+            <fieldset className="prism-controls">
+              <legend>Shape Prism</legend>
+              {(
+                [
+                  ["light", "Light intensity"],
+                  ["motion", "Motion speed"],
+                  ["facetSize", "Facet size"],
+                ] as const
+              ).map(([key, label]) => (
+                <label className="field" key={key}>
+                  {label}
+                  <span>
+                    {key === "motion" && settings.prism[key] === 0
+                      ? "Still"
+                      : `${settings.prism[key]}%`}
+                  </span>
+                  <input
+                    aria-label={`Prism ${label.toLowerCase()}`}
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={settings.prism[key]}
+                    onChange={(event) =>
+                      updateSettings({
+                        prism: {
+                          ...settings.prism,
+                          [key]: Number(event.target.value),
+                        },
+                      })
+                    }
+                  />
+                </label>
+              ))}
               <p className="helper">
-                {visualPresets[model.visual].description}
+                Larger facets feel quieter. Set motion to zero for a still
+                background.
               </p>
-              {model.visual === "Prism" && (
-                <fieldset className="prism-controls">
-                  <legend>Shape Prism</legend>
-                  {(
-                    [
-                      ["light", "Light intensity"],
-                      ["motion", "Motion speed"],
-                      ["facetSize", "Facet size"],
-                    ] as const
-                  ).map(([key, label]) => (
-                    <label className="field" key={key}>
-                      {label}
-                      <span>
-                        {key === "motion" && settings.prism[key] === 0
-                          ? "Still"
-                          : `${settings.prism[key]}%`}
-                      </span>
-                      <input
-                        aria-label={`Prism ${label.toLowerCase()}`}
-                        type="range"
-                        min={0}
-                        max={100}
-                        step={5}
-                        value={settings.prism[key]}
-                        onChange={(event) =>
-                          updateSettings({
-                            prism: {
-                              ...settings.prism,
-                              [key]: Number(event.target.value),
-                            },
-                          })
-                        }
-                      />
-                    </label>
-                  ))}
-                  <p className="helper">
-                    Larger facets feel quieter. Set motion to zero for a still
-                    background.
-                  </p>
-                </fieldset>
-              )}
-            </>
+            </fieldset>
           )}
+          <SoundLayerControls
+            settings={settings.soundLayer}
+            visual={model.visual}
+            onChange={(patch) =>
+              updateSettings({
+                soundLayer: { ...settings.soundLayer, ...patch },
+              })
+            }
+          />
           <Choice
             title="Composition"
             options={["Auto", "Cinema", "Canvas", "Portrait", "Companion"]}

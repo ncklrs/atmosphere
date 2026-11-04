@@ -120,15 +120,17 @@ Prism has independent Light intensity, Motion speed and Facet size sliders in th
 
 Enable **Auto per song** in the visual lab to cycle through all six backgrounds on track changes. Rotation stays fixed during lyric updates, pauses, seeks, missing lyrics and duration/artwork enrichment. The current background survives reloads and navigation. Turning the setting off holds the current background; choosing a preset manually also turns auto off. Existing settings keep manual mode until you opt in.
 
-### Optional Milkdrop engine
+### Waviz sound-layer prototype
 
-Choose **Milkdrop** under **Visual engine** in the lab for twelve curated
-Butterchurn scenes, grouped into Calm, Balanced, and Intense collections. Brightness,
-animation speed (including still), pattern energy, and preset-blend controls persist
-locally. Auto per song rotates within the chosen collection. The original six
-backgrounds remain under **Ambient**, with their existing controls and album colors.
+The lab's optional **sound layer** adds Halo, Ribbons, or Stardust over the six
+original backgrounds. Auto pairs the treatment with the background. Presence,
+size, response, and placement controls persist locally; lyrics dim the layer.
+Milkdrop and its dependencies have been removed.
 
-Milkdrop currently uses a silent ambient animation signal, not WiiM audio analysis.
-It creates no microphone/audio capture connection. Presets use their own colors.
-Unsupported WebGL2 and reduced motion retain the existing ambient fallback; sleep
-unmounts both engines. See [visual engine details and licenses](docs/VISUAL_ENGINES.md).
+Choose **Play test audio** for a quiet original loop, **Choose audio file** for local
+playback, or **Use microphone** for room audio. Audio starts only when you choose an
+input. Files and microphone audio stay local; microphone input never plays through
+the speakers. The Stop control disconnects all input resources. Audio persists
+between Lab and Display navigation but never automatically reconnects on reload.
+The WiiM connection still supplies metadata only; its music/lyrics are separate
+from test/file audio. See [sound-layer architecture and audio boundaries](docs/VISUAL_ENGINES.md).

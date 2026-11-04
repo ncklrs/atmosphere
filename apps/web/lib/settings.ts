@@ -12,20 +12,16 @@ import {
   type AmbientVisual,
 } from "../../../packages/design-system/visuals";
 import {
-  defaultMilkdrop,
-  isMilkdropPreset,
-  milkdropCollections,
-  milkdropPresets,
-  presetsInCollection,
-  type MilkdropSettings,
-} from "../../../packages/design-system/milkdrop";
+  defaultSoundLayer,
+  validateSoundLayer,
+  type SoundLayerSettings,
+} from "../../../packages/design-system/sound-layer";
 export interface Settings {
   source: "demo" | "gateway";
   intensity: Intensity;
   ambientVisual: AmbientVisual;
   autoVisuals: boolean;
-  visualEngine: "ambient" | "milkdrop";
-  milkdrop: MilkdropSettings;
+  soundLayer: SoundLayerSettings;
   prism: PrismControls;
   composition: string;
   calibrationMs: number;
@@ -39,8 +35,7 @@ export const defaults: Settings = {
   intensity: "Flow",
   ambientVisual: "Orbit",
   autoVisuals: false,
-  visualEngine: "ambient",
-  milkdrop: defaultMilkdrop,
+  soundLayer: defaultSoundLayer,
   prism: defaultPrism,
   composition: "Auto",
   calibrationMs: 0,
@@ -96,30 +91,9 @@ export function validateSettings(input: unknown): Settings {
     Number.isFinite(s.override.expiresAt)
       ? s.override
       : null;
-  const collection =
-    s.milkdrop && milkdropCollections.includes(s.milkdrop.collection)
-      ? s.milkdrop!.collection
-      : defaultMilkdrop.collection;
-  const preset =
-    isMilkdropPreset(s.milkdrop?.preset) &&
-    milkdropPresets[s.milkdrop.preset].collection === collection
-      ? s.milkdrop.preset
-      : presetsInCollection(collection)[0];
   return {
     autoVisuals: s.autoVisuals === true,
-    visualEngine: s.visualEngine === "milkdrop" ? "milkdrop" : "ambient",
-    milkdrop: {
-      preset,
-      collection,
-      brightness: bounded(s.milkdrop?.brightness, defaultMilkdrop.brightness),
-      motion: bounded(s.milkdrop?.motion, defaultMilkdrop.motion),
-      energy: bounded(s.milkdrop?.energy, defaultMilkdrop.energy),
-      blendSeconds:
-        typeof s.milkdrop?.blendSeconds === "number" &&
-        Number.isFinite(s.milkdrop.blendSeconds)
-          ? Math.max(0, Math.min(12, s.milkdrop.blendSeconds))
-          : defaultMilkdrop.blendSeconds,
-    },
+    soundLayer: validateSoundLayer(s.soundLayer),
     prism: {
       light: bounded(s.prism?.light, defaultPrism.light),
       motion: bounded(s.prism?.motion, defaultPrism.motion),

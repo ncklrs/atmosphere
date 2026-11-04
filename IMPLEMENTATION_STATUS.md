@@ -109,7 +109,7 @@ Added the opt-in Auto per song setting to the visual lab. Rotation cycles throug
 
 Unit tests cover full-library cycling, stable identity, missing metadata and persisted state validation. Browser checks verify track advancement, stability during seek-like position updates, reload persistence, disabling/re-enabling auto, and manual pinning across later tracks. Existing settings migrate with auto disabled.
 
-## Curated Butterchurn engine — 2026-11-04
+## Curated Butterchurn engine — 2026-11-04 (retired)
 
 Added optional Milkdrop rendering alongside the original six Ambient backgrounds.
 Pinned Butterchurn 2.6.7 and butterchurn-presets 2.4.7; the engine and twelve
@@ -149,3 +149,50 @@ Candidate scenes and final output were visually inspected; the updated live lab
 was verified through its UI. Real-phone GPU performance and real audio reactivity
 are not established by the browser tests. No external CodeRabbit review ran
 because its CLI remains signed out; local source review and checks were completed.
+
+## Waviz sound-layer prototype — 2026-11-04
+
+Removed Milkdrop/Butterchurn completely from the runtime: both dependencies, all
+preset loading, controls, canvas components, rotation hook/registry, type shim,
+licenses, and obsolete tests. Validation drops legacy settings while preserving
+the user's native background, source, auto rotation, calibration, and other room
+preferences. The retired rotation storage entry is removed on load.
+
+Added an optional transparent Waviz 1.0.0 Core layer over the native backgrounds.
+Halo, Ribbons, and Stardust use the original palette and retain independent
+presence, size, response, and placement controls. Auto pairs each native scene
+with a treatment. The library supplies the analyzer, coordinate transforms,
+waveforms, radial bars, and particles; Atmosphere owns composition and a bounded
+30 fps draw loop. The halo's logarithmic frequency bands are mirrored and remain
+at zero in silence, avoiding false spokes from stock centered normalization.
+Lyrics and high contrast dim the foreground layer; breaks remain art-free.
+Reduced motion uses a static ambient composition; hidden pages stop drawing.
+
+Inputs are explicitly user-started: a quiet original synthesized test loop, local
+audio files, or an optional room microphone. Actual Web Audio samples feed Waviz.
+No source automatically starts on enable/reload. The microphone is never connected
+to speakers, recorded, or uploaded; local files remain browser object URLs and
+are not uploaded. Test/file audio is separate from WiiM playback metadata/lyrics.
+A root audio provider preserves the chosen session across Lab/Display navigation.
+A persistent Stop control disconnects nodes, closes the AudioContext, stops tracks,
+and revokes file URLs. Disabling the layer and sleep also disconnect audio. Async
+generation fences stop late permission grants after cancellation. Unsupported
+Web Audio and permission denial keep the original background and show actionable
+errors. Plain-HTTP LAN microphone access may be unavailable on phones.
+
+The desktop preview stays visible while tuning the controls and provides a quick
+test-audio action. The MIT notice is served at `/licenses/waviz.txt`. Architecture
+and exact audio boundaries are documented in `docs/VISUAL_ENGINES.md`.
+
+Validation for this replacement: **53 unit/integration tests and 46 browser tests
+passed (99 total)**, plus lint, typecheck, and production build. Coverage includes
+legacy preference migration, bounded geometry and original demo synthesis,
+silent/mirrored frequency bands, all three idle/live treatments with real FFT data,
+no automatic AudioContext creation, local-file playback/pause/resume without
+external requests, audio continuity across navigation, microphone denial and
+late-grant cancellation, accepted synthetic MediaStream track cleanup, unavailable
+Web Audio, reduced motion, sleep/disconnect cleanup, lyric contrast/art-free gaps,
+and phone-sized controls. Physical microphone capture and phone GPU performance
+remain unverified. CodeRabbit remains signed out; source review and local checks
+were completed. The live lab is enabled on Halo over Voyage with input disconnected,
+and the existing native Auto per song preference is retained.

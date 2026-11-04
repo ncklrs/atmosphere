@@ -20,7 +20,6 @@ import {
   type Settings,
 } from "./settings";
 import { useSongVisual } from "./use-song-visual";
-import { useSongMilkdrop } from "./use-song-milkdrop";
 export function useAtmosphere() {
   const [settings, setSettings] = useState<Settings>(defaults);
   const [ready, setReady] = useState(false);
@@ -44,6 +43,7 @@ export function useAtmosphere() {
     try {
       const stored = localStorage.getItem(storageKey);
       if (stored) setSettings(validateSettings(JSON.parse(stored)));
+      localStorage.removeItem("atmosphere.milkdrop-rotation.v1");
     } catch {
       /* Storage may be disabled. */
     }
@@ -200,10 +200,8 @@ export function useAtmosphere() {
     [],
   );
   const visual = useSongVisual(playback, settings, ready);
-  const milkdropPreset = useSongMilkdrop(playback, settings, ready);
   return {
     visual,
-    milkdropPreset,
     ready,
     settings,
     updateSettings,

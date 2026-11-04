@@ -80,12 +80,6 @@ importers:
       "@tailwindcss/postcss":
         specifier: ^4.1.16
         version: 4.3.3
-      butterchurn:
-        specifier: 2.6.7
-        version: 2.6.7
-      butterchurn-presets:
-        specifier: 2.4.7
-        version: 2.4.7
       motion:
         specifier: 14.9.0
         version: 14.9.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -101,6 +95,9 @@ importers:
       tailwindcss:
         specifier: ^4.1.16
         version: 4.3.3
+      waviz:
+        specifier: 1.0.0
+        version: 1.0.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
 
   packages/adapter-wiim: {}
 
@@ -217,13 +214,6 @@ packages:
       }
     engines: { node: ">=6.0.0" }
     hasBin: true
-
-  "@babel/runtime@7.29.13":
-    resolution:
-      {
-        integrity: sha512-v+oN26xP4YIlQsbQ/CbTH1WG5m/l/DjKKZNy/Kp3f/AFvbgt7Em/D0FeMM3O2hX0YzeN2M16W8lOpyhIkfCBcQ==,
-      }
-    engines: { node: ">=6.9.0" }
 
   "@babel/template@7.29.7":
     resolution:
@@ -2150,12 +2140,6 @@ packages:
       }
     engines: { node: ">= 0.4" }
 
-  babel-runtime@6.26.0:
-    resolution:
-      {
-        integrity: sha512-ITKNuq2wKlW1fJg9sSW52eepoYgZBggvOAHC0u/CYu/qxQ9EVzThCgR69BnSXLHjy2f7SY5zaQ4yt7H9ZVxY2g==,
-      }
-
   balanced-match@1.0.2:
     resolution:
       {
@@ -2213,18 +2197,6 @@ packages:
     engines: { node: ^12.20.0 || ^14.13.1 || >=16.0.0 }
     peerDependencies:
       esbuild: ">=0.18"
-
-  butterchurn-presets@2.4.7:
-    resolution:
-      {
-        integrity: sha512-4MdM8ripz/VfH1BCldrIKdAc/1ryJFBDvqlyow6Ivo1frwj0H3duzvSMFC7/wIjAjxb1QpwVHVqGqS9uAFKhpg==,
-      }
-
-  butterchurn@2.6.7:
-    resolution:
-      {
-        integrity: sha512-BJiRA8L0L2+84uoG2SSfkp0kclBuN+vQKf217pK7pMlwEO2ZEg3MtO2/o+l8Qpr8Nbejg8tmL1ZHD1jmhiaaqg==,
-      }
 
   cac@6.7.14:
     resolution:
@@ -2361,13 +2333,6 @@ packages:
         integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==,
       }
 
-  core-js@2.6.12:
-    resolution:
-      {
-        integrity: sha512-Kb2wC0fvsWfQrgk8HU5lW6U/Lcs8+9aaYcy4ZFc6DDlo4nZ7n70dEgE5rtR0oG6ufKDUnrwfWL1mXR5ljDatrQ==,
-      }
-    deprecated: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
-
   cross-spawn@7.0.6:
     resolution:
       {
@@ -2478,12 +2443,6 @@ packages:
         integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==,
       }
     engines: { node: ">= 0.4" }
-
-  ecma-proposal-math-extensions@0.0.2:
-    resolution:
-      {
-        integrity: sha512-80BnDp2Fn7RxXlEr5HHZblniY4aQ97MOAicdWWpSo0vkQiISSE9wLR4SqxKsu4gCtXFBIPPzy8JMhay4NWRg/Q==,
-      }
 
   electron-to-chromium@1.5.469:
     resolution:
@@ -3582,12 +3541,6 @@ packages:
         integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==,
       }
 
-  lodash@4.18.1:
-    resolution:
-      {
-        integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==,
-      }
-
   loose-envify@1.4.0:
     resolution:
       {
@@ -4043,12 +3996,6 @@ packages:
         integrity: sha512-00o4I+DVrefhv+nX0ulyi3biSHCPDe+yLv5o/p6d/UVlirijB8E16FtfwSAi4g3tcqrQ4lRAqQSoFEZJehYEcw==,
       }
     engines: { node: ">= 0.4" }
-
-  regenerator-runtime@0.11.1:
-    resolution:
-      {
-        integrity: sha512-MguG95oij0fC3QV3URf4V2SDYGJhJnJGqvIIgdECeODCT98wSWDAJ94SSuVpYQUoTcGUIL6L4yNB7j1DFFHSBg==,
-      }
 
   regexp.prototype.flags@1.5.4:
     resolution:
@@ -4726,6 +4673,15 @@ packages:
       jsdom:
         optional: true
 
+  waviz@1.0.0:
+    resolution:
+      {
+        integrity: sha512-REdDgVvKTjteNH1OvXkUxeN2gMihrGSyUc77yxMwDY3Uk86FxKgXtsTS7bXIjyFFiDWJLLkFdXFWAehjS3gjIA==,
+      }
+    peerDependencies:
+      react: ">=18.0.0"
+      react-dom: ">=18.0.0"
+
   which-boxed-primitive@1.1.1:
     resolution:
       {
@@ -4927,8 +4883,6 @@ snapshots:
   "@babel/parser@7.29.12":
     dependencies:
       "@babel/types": 7.29.11
-
-  "@babel/runtime@7.29.13": {}
 
   "@babel/template@7.29.7":
     dependencies:
@@ -5888,11 +5842,6 @@ snapshots:
 
   axobject-query@4.1.0: {}
 
-  babel-runtime@6.26.0:
-    dependencies:
-      core-js: 2.6.12
-      regenerator-runtime: 0.11.1
-
   balanced-match@1.0.2: {}
 
   balanced-match@4.0.4: {}
@@ -5924,17 +5873,6 @@ snapshots:
     dependencies:
       esbuild: 0.27.7
       load-tsconfig: 0.2.5
-
-  butterchurn-presets@2.4.7:
-    dependencies:
-      babel-runtime: 6.26.0
-      ecma-proposal-math-extensions: 0.0.2
-      lodash: 4.18.1
-
-  butterchurn@2.6.7:
-    dependencies:
-      "@babel/runtime": 7.29.13
-      ecma-proposal-math-extensions: 0.0.2
 
   cac@6.7.14: {}
 
@@ -6011,8 +5949,6 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  core-js@2.6.12: {}
-
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -6076,8 +6012,6 @@ snapshots:
       call-bind-apply-helpers: 1.0.2
       es-errors: 1.3.0
       gopd: 1.2.0
-
-  ecma-proposal-math-extensions@0.0.2: {}
 
   electron-to-chromium@1.5.469: {}
 
@@ -6896,8 +6830,6 @@ snapshots:
 
   lodash.merge@4.6.2: {}
 
-  lodash@4.18.1: {}
-
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
@@ -7158,8 +7090,6 @@ snapshots:
       get-intrinsic: 1.3.0
       get-proto: 1.0.1
       which-builtin-type: 1.2.1
-
-  regenerator-runtime@0.11.1: {}
 
   regexp.prototype.flags@1.5.4:
     dependencies:
@@ -7717,6 +7647,12 @@ snapshots:
       - terser
       - tsx
       - yaml
+
+  waviz@1.0.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+    dependencies:
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+      tslib: 2.8.1
 
   which-boxed-primitive@1.1.1:
     dependencies:

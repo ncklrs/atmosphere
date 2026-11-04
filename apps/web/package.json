@@ -12,12 +12,11 @@
     "@fontsource-variable/geist-mono": "^5.2.8",
     "@fontsource-variable/instrument-sans": "^5.2.8",
     "@tailwindcss/postcss": "^4.1.16",
-    "butterchurn": "2.6.7",
-    "butterchurn-presets": "2.4.7",
     "motion": "14.9.0",
     "next": "16.4.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwindcss": "^4.1.16"
+    "tailwindcss": "^4.1.16",
+    "waviz": "1.0.0"
   }
 }

@@ -17,7 +17,6 @@ export function useSongVisual(
   const [rotation, setRotation] = useState<VisualRotation | null>(null);
   const [loaded, setLoaded] = useState(false);
   const track = visualTrackIdentity(playback);
-  const enabled = settings.autoVisuals && settings.visualEngine === "ambient";
   useEffect(() => {
     try {
       setRotation(
@@ -33,9 +32,14 @@ export function useSongVisual(
   useEffect(() => {
     if (!ready || !loaded) return;
     setRotation((previous) =>
-      advanceVisual(previous, track, settings.ambientVisual, enabled),
+      advanceVisual(
+        previous,
+        track,
+        settings.ambientVisual,
+        settings.autoVisuals,
+      ),
     );
-  }, [ready, loaded, track, settings.ambientVisual, enabled]);
+  }, [ready, loaded, track, settings.ambientVisual, settings.autoVisuals]);
   useEffect(() => {
     if (!loaded || !rotation) return;
     try {
@@ -44,7 +48,7 @@ export function useSongVisual(
       /* Session rotation still works. */
     }
   }, [loaded, rotation]);
-  return enabled
+  return settings.autoVisuals
     ? (rotation?.visual ?? settings.ambientVisual)
     : settings.ambientVisual;
 }

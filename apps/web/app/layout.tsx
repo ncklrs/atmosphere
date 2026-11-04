@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import "../components/lyric-stage.css";
 import "../components/ambient-visuals.css";
+import "../components/sound-layer.css";
+import { AudioInputProvider } from "../components/audio-input-provider";
 const geist = localFont({
   src: "../fonts/geist.woff2",
   variable: "--font-geist",
@@ -32,7 +34,9 @@ export default function RootLayout({
       lang="en"
       className={`${geist.variable} ${instrument.variable} ${mono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <AudioInputProvider>{children}</AudioInputProvider>
+      </body>
     </html>
   );
 }

@@ -1,14 +1,5 @@
-import { memo, useCallback, useState } from "react";
-import dynamic from "next/dynamic";
+import { memo, useState } from "react";
 import GenerativeCanvas from "./generative-canvas";
-import type { MilkdropStatus } from "./milkdrop-canvas";
-import type {
-  MilkdropSettings,
-  MilkdropPreset,
-} from "../../../packages/design-system/milkdrop";
-const MilkdropCanvas = dynamic(() => import("./milkdrop-canvas"), {
-  ssr: false,
-});
 import type { Intensity } from "../../../packages/motion-engine/index";
 import {
   visualPresets,
@@ -44,10 +35,6 @@ function AmbientVisuals({
   palette,
   identity,
   prism,
-  engine,
-  milkdrop,
-  milkdropPreset,
-  onVisualStatus,
 }: {
   visual: AmbientVisual;
   intensity: Intensity;
@@ -56,39 +43,14 @@ function AmbientVisuals({
   palette: readonly string[];
   identity: string;
   prism: PrismControls;
-  engine: "ambient" | "milkdrop";
-  milkdrop: MilkdropSettings;
-  milkdropPreset: MilkdropPreset;
-  onVisualStatus?: (status: MilkdropStatus) => void;
 }) {
   const [gpu, setGpu] = useState(false);
-  const [milkdropStatus, setMilkdropStatus] =
-    useState<MilkdropStatus>("loading");
-  const updateStatus = useCallback(
-    (status: MilkdropStatus) => {
-      setMilkdropStatus(status);
-      onVisualStatus?.(status);
-    },
-    [onVisualStatus],
-  );
   if (sleep) return null;
   const fallback = visualPresets[visual].fallback;
-  const isMilkdrop = engine === "milkdrop";
-  const ambientFallback =
-    milkdropStatus === "fallback" || milkdropStatus === "reduced";
   return (
     <div
       className={`ambient-visuals visual-${fallback.toLowerCase()} preset-${visual.toLowerCase()}`}
-      data-renderer={
-        isMilkdrop && milkdropStatus === "ready"
-          ? "butterchurn"
-          : gpu && (!isMilkdrop || ambientFallback)
-            ? "webgl"
-            : "css"
-      }
-      data-engine={engine}
-      data-engine-state={isMilkdrop ? milkdropStatus : "ready"}
-      data-preset={isMilkdrop ? milkdropPreset : undefined}
+      data-renderer={gpu ? "webgl" : "css"}
       data-visual={visual}
       data-intensity={intensity}
       data-focus={focus}
@@ -104,23 +66,14 @@ function AmbientVisuals({
       }
       aria-hidden="true"
     >
-      {isMilkdrop && (
-        <MilkdropCanvas
-          preset={milkdropPreset}
-          controls={milkdrop}
-          onStatus={updateStatus}
-        />
-      )}
-      {(!isMilkdrop || ambientFallback) && (
-        <GenerativeCanvas
-          prism={prism}
-          visual={visual}
-          intensity={intensity}
-          palette={palette}
-          identity={identity}
-          onReady={setGpu}
-        />
-      )}
+      <GenerativeCanvas
+        prism={prism}
+        visual={visual}
+        intensity={intensity}
+        palette={palette}
+        identity={identity}
+        onReady={setGpu}
+      />
       <div className="ambient-fields">
         <i className="ambient-field field-one" />
         <i className="ambient-field field-two" />

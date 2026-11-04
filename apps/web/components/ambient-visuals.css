@@ -669,36 +669,3 @@
 .preset-prism[data-still="true"] * {
   animation-play-state: paused !important;
 }
-
-.milkdrop-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  visibility: hidden;
-}
-.ambient-visuals[data-renderer="butterchurn"] > .milkdrop-canvas {
-  visibility: visible;
-}
-.ambient-visuals[data-renderer="butterchurn"]
-  > :not(.milkdrop-canvas):not(.ambient-vignette) {
-  visibility: hidden;
-}
-.milkdrop-controls .preset-credit {
-  font-size: 9px;
-  overflow-wrap: anywhere;
-}
-.milkdrop-status {
-  border-left: 2px solid var(--accent);
-  padding: 8px 12px;
-  background: #c7b4ff08;
-  font-size: 10px;
-  line-height: 1.6;
-  color: var(--muted);
-  margin: 0 0 22px;
-}
-.milkdrop-reset {
-  font-size: 10px;
-  color: var(--accent);
-  padding: 0 0 16px;
-}

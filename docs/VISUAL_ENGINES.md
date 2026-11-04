@@ -1,71 +1,58 @@
-# Visual engines
+# Atmosphere backgrounds and sound layer
 
-The lab retains Atmosphere's six custom ambient shaders and adds an optional
-Butterchurn renderer. Choose **Milkdrop** in the lab to use it. The existing
-Ambient engine remains the default for existing and new preferences.
+Atmosphere retains its six native ambient shaders: Bloom, Tide, Orbit, Nova,
+Prism, and Voyage. They use album colors, continue through lyric breaks, and
+support the existing intensity, Prism, contrast, reduced-motion, and sleep controls.
+The previous Milkdrop/Butterchurn experiment has been removed, including its
+packages, preset assets, runtime components, and controls. Legacy settings are
+ignored during validation, preserving the original background and playback source.
 
-## Curated Milkdrop library
+## Waviz prototype
 
-Twelve bundled presets are organized into Calm, Balanced, and Intense collections.
-Their full creator credits are displayed below the selected scene in the lab and
-retained in `packages/design-system/milkdrop.ts`. The labels describe the visual
-character, not a guarantee that any particular preset has no bright or fast motion.
+The optional **sound layer** adds transparent Halo, Ribbons, or Stardust treatments
+above the native background and behind the lyrics. Auto pairs Halo with Orbit and
+Prism, Ribbons with Bloom and Tide, and Stardust with Nova and Voyage. Presence,
+size, response, and placement are adjustable and saved on this browser. With no
+input connected, it shows a clearly labeled ambient preview with no audio analysis.
 
-The client loads Butterchurn only when selected, and imports each preset separately.
-Only the allowlisted presets in `milkdrop-loader.ts` can execute. No remote preset
-URLs, custom files, or third-party song-title overlays are loaded.
+The prototype uses **Waviz 1.0.0 Core**: its AudioAnalyzer receives real Web Audio
+samples, and its Visualizer supplies polar/rectangular transforms, waveform paths,
+frequency bars, and particles. Atmosphere owns the draw loop, composition, palette,
+controls, and lifecycle, rather than using the stock self-scheduling React presets.
+The library is loaded only when the layer/input is used. Its MIT notice ships at
+`/licenses/waviz.txt`.
 
-Versions are pinned to Butterchurn **2.6.7** and butterchurn-presets **2.4.7**.
-Both packages are MIT licensed; license notices ship at
-`/licenses/butterchurn.txt` and `/licenses/butterchurn-presets.txt`.
+## Audio inputs
 
-## Controls
+Audio starts only from an explicit user action. Enabling the layer never starts
+an AudioContext, file playback, or microphone capture automatically.
 
-- **Brightness:** dims the final Milkdrop image independently of lyrics.
-- **Animation speed:** scales the renderer's frame delta; zero holds the canvas.
-  Milkdrop equations also contain frame-based feedback, so not all movement scales
-  identically with this control.
-- **Pattern energy:** changes the amplitude of the continuous ambient drive.
-- **Preset blend:** requests a 0–12 second Milkdrop transition. A still scene switches
-  immediately so it cannot become stuck at the beginning of a blend. Blend timing
-  follows the animation-speed control.
-- **Auto per song:** rotates within the selected collection, once per track identity.
-  Seeking, pausing, and enriching artwork/metadata do not advance it. Turning it off
-  pins the current preset; manually selecting a preset turns rotation off.
+- **Play test audio:** synthesizes a quiet original eight-second chord/pluck/beat
+  loop locally. This is audible test audio analyzed by Waviz, not a simulated FFT.
+- **Choose audio file:** plays a local file through Web Audio, with pause/resume and
+  volume controls. The file is not uploaded. Its object URL is revoked on disconnect.
+- **Use microphone:** requests audio-only browser permission and analyzes the room.
+  It is never routed to speakers, recorded, uploaded, or persisted as a selected
+  input. Microphone capture needs localhost/HTTPS and browser support. A phone on
+  the plain-HTTP LAN preview may use files/test audio without microphone access.
 
-Settings and rotation state persist on each browser/display, independently of the
-native shader preferences.
+The WiiM adapter still provides track metadata and position rather than audio
+samples. Test/file audio is independent of the WiiM's music and lyric timeline.
+Microphone input can observe the actual music playing in the room, with room and
+capture latency. No direct Spotify Connect audio capture is claimed.
 
-## Ambient animation, not audio analysis
+A root provider keeps an explicitly started audio session alive during navigation
+between the lab and display. The persistent Stop control can disconnect it on any
+route. Disconnect, disabling the layer, sleep, and provider teardown release audio
+nodes, microphone tracks, object URLs, and the AudioContext. Generation fences stop
+late microphone grants and discard stale initialization results after cancellation.
+A full reload starts disconnected; audio permissions are never requested on reload.
 
-The WiiM adapter provides playback state and metadata, **not PCM samples**.
-Milkdrop therefore receives a deterministic, continuously varying mathematical
-signal in this version. There is no beat detector or rhythmic amplitude envelope.
-No AudioContext, microphone, audio capture, or audio output is created. The lab
-labels the result **Ambient animation · no audio capture**.
+## Rendering
 
-Ambient adaptation disables each preset's stock volume gate, so wave-based scenes
-remain visible without musical loudness transients. The original equations and
-creator credits otherwise remain intact. Jelly space is the initial Milkdrop scene.
-
-A future audio-input integration can replace that signal with real time-domain
-samples. It must provide an explicitly selected audio source before claiming
-music-reactive behavior. Track titles and timing alone cannot supply it.
-
-Milkdrop presets use their own colors. Album-art palette extraction still drives
-Atmosphere's original backgrounds and surrounding palette; it does not recolor
-third-party Milkdrop shaders.
-
-## Runtime behavior
-
-The engine targets at most 30 frames/second and a 360,000-pixel canvas, with a lower
-70,000-pixel / 12 fps budget for detected software rendering and adaptive reductions
-when drawing is slow. Hidden pages stop drawing. Sleep unmounts the engine.
-Reduced-motion preference uses the existing static ambient renderer. Missing
-WebGL2, import/render failures, or context loss also reveal the ambient fallback;
-context restoration recreates Milkdrop. The owned WebGL2 context is released on
-unmount because Butterchurn 2.x does not expose a destroy method.
-
-Lyrics remain an independent foreground layer. High contrast dims the background
-while lyrics are active, and musical breaks retain the full ambient scene without
-album cards.
+The transparent 2D canvas uses at most 600,000 pixels and targets 30 fps. The native
+background keeps its existing GPU budgets and CSS fallback. Hidden pages suspend
+the sound draw loop. Reduced motion draws a static idle composition, even if audio
+is playing. Sleep unmounts the canvas and disconnects its audio input. Lyrics dim
+the layer automatically, with additional attenuation in high contrast; musical
+breaks retain the background and layer without album art or filler.
