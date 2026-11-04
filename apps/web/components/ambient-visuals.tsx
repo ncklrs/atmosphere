@@ -8,14 +8,14 @@ const contours = Array.from(
     `M-100 ${260 + i * 23} C180 ${40 + i * 24} 440 ${690 - i * 15} 740 ${350 + i * 20} S1120 ${80 + i * 28} 1400 ${390 + i * 19}`,
 );
 const particles = Array.from(
-  { length: 18 },
+  { length: 72 },
   (_, i) =>
     ({
-      left: `${(i * 61 + 13) % 97}%`,
-      top: `${(i * 37 + 19) % 93}%`,
+      left: `${(i * 61.73 + 13) % 100}%`,
+      top: `${(i * 37.31 + 19) % 100}%`,
       animationDelay: `-${i * 7}s`,
-      animationDuration: `${36 + i * 3}s`,
-      "--dust-size": `${(i % 3) + 1}px`,
+      animationDuration: `${18 + (i % 11) * 3}s`,
+      "--dust-size": `${i % 9 === 0 ? 3 : i % 3 === 0 ? 2 : 1}px`,
     }) as React.CSSProperties,
 );
 
@@ -45,6 +45,11 @@ function AmbientVisuals({
         <i className="ambient-field field-three" />
         <i className="ambient-field field-four" />
       </div>
+      <div className="ambient-nebula">
+        <i className="nebula-cloud cloud-one" />
+        <i className="nebula-cloud cloud-two" />
+        <i className="nebula-cloud cloud-three" />
+      </div>
       {visual === "Tide" && (
         <svg
           className="ambient-contours"
@@ -65,7 +70,14 @@ function AmbientVisuals({
       )}
       {visual === "Orbit" && (
         <div className="ambient-orbital">
-          <div className="ambient-orb" />
+          <div className="orbital-corona" />
+          <div className="orbital-disk">
+            <i />
+          </div>
+          <div className="ambient-orb">
+            <i className="orb-surface" />
+          </div>
+          <div className="orbital-moon" />
           <div className="ambient-ring ring-one" />
           <div className="ambient-ring ring-two" />
           <div className="ambient-ring ring-three" />

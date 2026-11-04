@@ -119,3 +119,25 @@ test("reduced motion uses a static reading composition without synthetic word hi
   );
   await expect(page.locator(".word-active")).toHaveCount(0);
 });
+
+test("lyric entrances rotate in opposite directions and pause preserves the angle", async ({
+  page,
+}) => {
+  await page.goto("/display");
+  await page.getByRole("button", { name: "Pause demo" }).click();
+  const seek = page.getByRole("slider", { name: "Demo playback position" });
+  const angle = () =>
+    page.locator(".kinetic-focus").evaluate((el) => {
+      const matrix = new DOMMatrixReadOnly(getComputedStyle(el).transform);
+      return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI;
+    });
+  await seek.fill("3100");
+  await expect.poll(angle).toBeLessThan(-5);
+  const first = await angle();
+  await seek.fill("14100");
+  await expect.poll(angle).toBeGreaterThan(5);
+  await seek.fill("3100");
+  await expect.poll(angle).toBeCloseTo(first, 3);
+  await page.waitForTimeout(200);
+  expect(await angle()).toBeCloseTo(first, 3);
+});

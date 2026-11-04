@@ -387,10 +387,10 @@ function Lab({ model }: { model: Model }) {
           />
           <p className="helper">
             {settings.ambientVisual === "Bloom"
-              ? "Luminous color fields, slowly unfolding."
+              ? "Luminous clouds and flowing ribbons of color."
               : settings.ambientVisual === "Tide"
                 ? "Layered currents and shifting contours."
-                : "Sculptural orbits and drifting stardust."}
+                : "A luminous nebula, a ringed world, and drifting stars."}
           </p>
           <Choice
             title="Composition"
@@ -410,7 +410,7 @@ function Lab({ model }: { model: Model }) {
             {settings.intensity === "Whisper"
               ? "Quiet placements. Soft scale. Almost still."
               : settings.intensity === "Flow"
-                ? "A new composition for every line. Phrases drift, expand, and find their place."
+                ? "A new composition for every line. Phrases sweep in at different angles, expand, and find their place."
                 : "Bolder scale, sweeping entrances, and full-canvas lyric moments."}
           </p>
           <label className="switch-row">

@@ -96,6 +96,13 @@ test("reduced motion disables ambient animation and sleep unmounts the visual en
       .locator(".field-one")
       .evaluate((el) => getComputedStyle(el).animationName),
   ).toBe("none");
+  for (const selector of [".cloud-one", ".orbital-disk i", ".orb-surface"]) {
+    expect(
+      await page
+        .locator(selector)
+        .evaluate((el) => getComputedStyle(el).animationName),
+    ).toBe("none");
+  }
   await page.getByRole("link", { name: "Settings", exact: true }).click();
   await page.getByLabel("Music wakes the display").uncheck();
   await page.getByRole("button", { name: "Sleep", exact: false }).click();
@@ -107,7 +114,7 @@ test("high contrast protects lyrics without dimming the ambient-only scene", asy
 }) => {
   await page.goto("/lab");
   await page.getByLabel("High contrast").check();
-  await expect(page.locator(".ambient-visuals")).toHaveCSS("opacity", "0.08");
+  await expect(page.locator(".ambient-visuals")).toHaveCSS("opacity", "0.28");
   await page.getByLabel("Show synchronized lyrics").uncheck();
   await expect(page.locator(".ambient-visuals")).toHaveAttribute(
     "data-focus",

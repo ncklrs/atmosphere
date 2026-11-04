@@ -58,6 +58,8 @@ export interface ChoreographyFrame {
   focusX: number;
   focusY: number;
   scale: number;
+  leadRotate: number;
+  focusRotate: number;
 }
 export function writeChoreographyFrame(
   target: ChoreographyFrame,
@@ -65,10 +67,12 @@ export function writeChoreographyFrame(
   durationMs: number,
   intensity: Intensity,
   reduced = false,
+  index = 0,
 ) {
   if (reduced) {
     target.leadX = target.leadY = target.focusX = target.focusY = 0;
     target.scale = 1;
+    target.leadRotate = target.focusRotate = 0;
     return target;
   }
   const amount = reduced
@@ -78,16 +82,21 @@ export function writeChoreographyFrame(
       : intensity === "Pulse"
         ? 1
         : 0.65;
-  const enter = Math.max(0, Math.min(1, elapsedMs / 650));
+  const direction = ((index % 6) + 6) % 6;
+  const side = direction % 2 === 0 ? -1 : 1;
+  const vertical = direction < 2 ? 1 : direction < 4 ? -1 : 0.35;
+  const enter = Math.max(0, Math.min(1, elapsedMs / 1100));
   const arrival = (1 - enter) ** 3;
   const hold = Math.max(
     0,
-    Math.min(1, (elapsedMs - 650) / Math.max(1000, durationMs - 650)),
+    Math.min(1, (elapsedMs - 1100) / Math.max(1000, durationMs - 1100)),
   );
-  target.leadX = amount * (-26 * arrival + 6 * hold);
-  target.leadY = amount * (18 * arrival - 4 * hold);
-  target.focusX = amount * (32 * arrival - 8 * hold);
-  target.focusY = amount * (46 * arrival - 14 * hold);
-  target.scale = 1 + amount * (-0.16 * arrival + 0.035 * hold);
+  target.leadX = amount * (-side * 38 * arrival + 6 * hold);
+  target.leadY = amount * (-vertical * 34 * arrival - 4 * hold);
+  target.focusX = amount * (side * 64 * arrival - side * 8 * hold);
+  target.focusY = amount * (vertical * 70 * arrival - 14 * hold);
+  target.leadRotate = amount * -side * (10 * arrival + 2.5);
+  target.focusRotate = amount * side * (12 * arrival + 5 - 1.5 * hold);
+  target.scale = 1 + amount * (-0.24 * arrival + 0.025 * hold);
   return target;
 }

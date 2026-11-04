@@ -34,12 +34,16 @@ export default function LyricStage({
     focusX: 0,
     focusY: 0,
     scale: 1,
+    leadRotate: 0,
+    focusRotate: 0,
   });
   const leadX = useMotionValue(0),
     leadY = useMotionValue(0),
     focusX = useMotionValue(0),
     focusY = useMotionValue(0),
-    scale = useMotionValue(1);
+    scale = useMotionValue(1),
+    leadRotate = useMotionValue(0),
+    focusRotate = useMotionValue(0);
   function paint(position: number) {
     const values = writeChoreographyFrame(
       frame.current,
@@ -47,12 +51,15 @@ export default function LyricStage({
       (cue.endMs ?? cue.startMs + 8000) - cue.startMs,
       intensity,
       reduced,
+      index,
     );
     leadX.set(values.leadX);
     leadY.set(values.leadY);
     focusX.set(values.focusX);
     focusY.set(values.focusY);
     scale.set(values.scale);
+    leadRotate.set(values.leadRotate);
+    focusRotate.set(values.focusRotate);
   }
   useEffect(() => {
     anchor.current = { positionMs, sampledAt: performance.now(), playing };
@@ -74,13 +81,16 @@ export default function LyricStage({
     >
       <div className="lyric-hero kinetic-copy" aria-label={cue.text}>
         {design.phrases[0] && (
-          <motion.span className="kinetic-lead" style={{ x: leadX, y: leadY }}>
+          <motion.span
+            className="kinetic-lead"
+            style={{ x: leadX, y: leadY, rotate: leadRotate }}
+          >
             {design.phrases[0]}
           </motion.span>
         )}{" "}
         <motion.span
           className="kinetic-focus"
-          style={{ x: focusX, y: focusY, scale }}
+          style={{ x: focusX, y: focusY, scale, rotate: focusRotate }}
         >
           {cue.words?.length
             ? cue.words.map((w, i) => (

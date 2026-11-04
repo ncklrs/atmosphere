@@ -9,13 +9,23 @@ const frame = (
   elapsed: number,
   intensity: "Whisper" | "Flow" | "Pulse" = "Flow",
   reduced = false,
+  index = 0,
 ) =>
   writeChoreographyFrame(
-    { leadX: 0, leadY: 0, focusX: 0, focusY: 0, scale: 1 },
+    {
+      leadX: 0,
+      leadY: 0,
+      focusX: 0,
+      focusY: 0,
+      scale: 1,
+      leadRotate: 0,
+      focusRotate: 0,
+    },
     elapsed,
     9000,
     intensity,
     reduced,
+    index,
   );
 describe("lyric choreography", () => {
   it("assigns different full-canvas compositions deterministically", () => {
@@ -65,6 +75,22 @@ describe("lyric choreography", () => {
     expect(frame(0, "Pulse", true)).toEqual(frame(8000, "Pulse", true));
     expect(frame(3000, "Pulse", true).scale).toBe(1);
   });
+  it("varies entry angles and directions while reproducing the same cue after seeking", () => {
+    const left = frame(0, "Flow", false, 0);
+    const right = frame(0, "Flow", false, 1);
+    const above = frame(0, "Flow", false, 2);
+    expect(left.focusRotate).toBeLessThan(-8);
+    expect(right.focusRotate).toBeGreaterThan(8);
+    expect(left.focusX * right.focusX).toBeLessThan(0);
+    expect(left.focusY * above.focusY).toBeLessThan(0);
+    expect(Math.abs(frame(1800).focusRotate)).toBeLessThan(
+      Math.abs(left.focusRotate),
+    );
+    const arrived = frame(400, "Pulse", false, 3);
+    frame(7000, "Pulse", false, 4);
+    expect(frame(400, "Pulse", false, 3)).toEqual(arrived);
+    expect(frame(0, "Pulse", true, 3).focusRotate).toBe(0);
+  });
   it("shrinks long text and flags exceptionally dense lines", () => {
     expect(
       choreography({ startMs: 0, text: "A brief line" }, 0, "Flow").typeScale,
@@ -89,6 +115,8 @@ describe("lyric choreography", () => {
       focusX: 0,
       focusY: 0,
       scale: 1,
+      leadRotate: 0,
+      focusRotate: 0,
     };
     expect(writeChoreographyFrame(target, 1000, 9000, "Flow")).toBe(target);
   });

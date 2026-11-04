@@ -28,7 +28,7 @@ Development host: macOS, Node.js 23.7.0, pnpm 9.12.0, local Playwright Chromium.
 - Desktop, portrait, compact and lab captures have been visually inspected. The lab adjusts the preview's aspect ratio for forced Portrait/Canvas compositions.
 - CodeRabbit CLI is installed but signed out; no external CodeRabbit review was performed. Local lint, type checking, tests and source review remain the evidence for this delivery.
 
-Final local results: **37 unit/integration tests passed across 6 files; 25 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
+Final local results: **38 unit/integration tests passed across 6 files; 26 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
 
 ## Unverified or deferred
 
@@ -72,3 +72,7 @@ Read-only device identity, extended playback status and metadata now respond thr
 ## Continuous ambient visuals
 
 Added three procedural ambient presets to the visual lab: Bloom (moving light fields), Tide (layered contours), and Orbit (sculptural orbital forms and particles). Their CSS transform animations continue independently of the playback timeline, including through instrumental gaps; the same layers become quieter under lyric text. Existing Whisper/Flow/Pulse preferences control motion speed/density. Reduced motion disables the animations; high contrast suppresses them behind lyrics while allowing full ambient-only visuals; sleep unmounts the engine. Curated palettes are selected deterministically from track identity without external image requests. No beat detection, audio capture or FFT signal is claimed. Disabling lyrics during playback now leaves ambient visuals without an album card. Idle scenes use the generative engine and clock instead of an album card. Existing playback source, lyric calibration and scheduling preferences are preserved.
+
+## Angled typography and deeper cosmic visuals
+
+Lyric phrases enter from alternating sides and above/below the canvas, rotate in opposite directions, and retain a slight angle while holding. Rotation uses the same pure playback clock as translation and scale, so pause freezes it and seeks reproduce it. Reduced motion removes all lyric transforms. Orbit now includes luminous nebula layers, a textured ringed planet, a rotating accretion disk, a moon, and 72 drifting stars. Bloom gains luminous color ribbons; Tide has brighter contours and deeper color fields. Continuous layers animate transforms and opacity without per-frame React renders or external assets. High contrast keeps a dimmed cosmic scene behind shadowed white text and full visuals in ambient breaks. Unit tests verify entry direction, angular settling, seek determinism, and reduced motion; browser tests verify actual rendered angle changes and the six existing viewport bounds. Build, lint, typecheck, 38 unit/integration tests and 26 browser tests pass.
