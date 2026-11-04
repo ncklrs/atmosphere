@@ -171,3 +171,11 @@ the loopback owner in Settings, then use its URL and six-digit code on the phone
 See [setup and pairing](docs/PHONE_CONTROLS.md) and the
 [implementation plan](docs/EXPERIENCE_UPGRADE_PLAN.md). Spotify Connect stays in
 charge of playback; no phone action starts audio capture.
+
+### iPad display and room microphone
+
+The `/ipad` setup guides trusted local HTTPS, room pairing and an explicit
+microphone start before entering Display. Older iPads use lighter graphics while
+lyrics stay full resolution. Spotify Connect remains on the WiiM; microphone
+sound is analyzed locally on the iPad. See [the iPad test guide](docs/IPAD_TEST.md)
+for certificate trust, hosting and cleanup steps.

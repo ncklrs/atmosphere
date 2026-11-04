@@ -23,6 +23,11 @@ const mono = localFont({
 });
 export const metadata: Metadata = {
   title: "Atmosphere — A room for sound",
+  appleWebApp: {
+    capable: true,
+    title: "Atmosphere",
+    statusBarStyle: "black-translucent",
+  },
   description: "A local-first ambient music and lyric display.",
 };
 export default function RootLayout({

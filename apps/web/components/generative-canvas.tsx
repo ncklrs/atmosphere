@@ -1,5 +1,6 @@
 "use client";
 import { memo, useEffect, useRef } from "react";
+import { renderProfile } from "../lib/browser/render-profile";
 import { fragmentShader, vertexShader } from "../lib/visuals/shaders";
 import {
   emptyVisualFrame,
@@ -47,6 +48,8 @@ function GenerativeCanvas(props: Props) {
           String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)),
         )
       : false;
+    const profile = renderProfile(navigator);
+    element.dataset.quality = profile.name;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let raf = 0,
       disposed = false,
@@ -54,7 +57,7 @@ function GenerativeCanvas(props: Props) {
       last = 0,
       elapsed = 0,
       prismElapsed = 0,
-      budget = software ? 90000 : 520000,
+      budget = software ? 90000 : profile.pixels,
       slow = 0;
     let program: WebGLProgram | null = null,
       buffer: WebGLBuffer | null = null;
@@ -102,7 +105,7 @@ function GenerativeCanvas(props: Props) {
         return;
       }
       const dt = last ? Math.min(0.1, (stamp - last) / 1000) : 0;
-      if (last && dt < 1 / (software ? 12 : 32) && !reduced.matches) {
+      if (last && dt < 1 / (software ? 12 : profile.fps) && !reduced.matches) {
         raf = requestAnimationFrame(draw);
         return;
       }

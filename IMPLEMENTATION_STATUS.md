@@ -307,3 +307,36 @@ Lint, typecheck and production builds pass. All three new scenes and the lab wer
 visually inspected. Physical phone GPU performance is not established by those
 checks. Direct Spotify Connect, no required microphone and no required purchases
 remain the active constraints.
+
+## iPad display and microphone trial — November 4, 2026
+
+Added `/ipad` with explicit certificate trust instructions, room pairing,
+user-initiated microphone capture, a live input meter and a Next navigation link
+that preserves the root audio session. The current Mac hosts the test; direct
+Spotify Connect remains on the WiiM. The user will perform certificate trust and
+microphone permission on the physical iPad. Capture stays local and the existing
+Stop/sleep/disable cleanup applies.
+
+Older Safari no longer needs AbortSignal.any/timeout for browser polling. Tablet
+identification includes Safari desktop mode; native ambient and sound-layer
+canvases use lower pixel/fps budgets. Unsupported fullscreen controls are hidden;
+Home Screen metadata is included. Lyrics remain DOM text at full resolution.
+
+Dedicated local HTTPS tooling generates short-lived certificates with private
+keys in ignored `.data/ipad-tls`, without changing host trust. The LAN web process
+remains a non-owner. Verified HTTPS proxy requests preserve same-origin protection
+and issue Secure HttpOnly pairing cookies. The removable Apple profile contains
+only the intended public test CA. See `docs/IPAD_TEST.md` for launch, trust,
+renewal and cleanup. No purchases, tunnel or external audio uploads are needed.
+
+The live Wi-Fi setup and certificate payload were inspected. Node verified TLS
+with the explicit CA, including hostname validation and unknown-Host rejection.
+Tests emulate older Safari, tablet rendering, secure setup, pairing, local input
+metering and capture retention into Display. Physical iPad performance and real
+Safari permission behavior still require the device test. The room integration
+test now runs after the other browser flows to avoid mutating shared server
+settings during audio tests.
+
+Final validation: all 65 unit/integration tests and all 63 browser tests pass.
+Lint, typecheck and the production build pass. Live HTTPS setup, pairing with a
+Secure cookie, and Apple profile parsing were verified against the running host.

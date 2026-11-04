@@ -1,4 +1,5 @@
 "use client";
+import { renderProfile } from "../lib/browser/render-profile";
 import { memo, useEffect, useRef } from "react";
 import type { Visualizer, AudioAnalyzer, IOptions } from "waviz/core";
 import {
@@ -34,6 +35,8 @@ function SoundLayerCanvas(props: Props) {
     const element = canvas.current!,
       ctx = element.getContext("2d", { alpha: true });
     if (!ctx) return;
+    const profile = renderProfile(navigator);
+    element.dataset.quality = profile.name;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let disposed = false,
       raf = 0,
@@ -50,7 +53,7 @@ function SoundLayerCanvas(props: Props) {
       const scale = Math.min(
         devicePixelRatio || 1,
         1.5,
-        Math.sqrt(600000 / Math.max(1, rect.width * rect.height)),
+        Math.sqrt(profile.soundPixels / Math.max(1, rect.width * rect.height)),
       );
       element.width = Math.max(1, Math.round(rect.width * scale));
       element.height = Math.max(1, Math.round(rect.height * scale));
@@ -59,7 +62,7 @@ function SoundLayerCanvas(props: Props) {
       raf = 0;
       if (disposed || document.hidden || !painter || !idleAnalyzer) return;
       const dt = last ? Math.min(0.1, (stamp - last) / 1000) : 0;
-      if (last && dt < 1 / 30 && !reduced.matches) {
+      if (last && dt < 1 / Math.min(30, profile.fps) && !reduced.matches) {
         raf = requestAnimationFrame(draw);
         return;
       }

@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { fetchWithDeadline } from "./browser/fetch";
 import { validateSettings, type Settings } from "./settings";
 const roomUrl = (action: string) =>
   `/api/room/${action}${location.pathname === "/remote" ? "?controller=1" : ""}`;
@@ -55,7 +56,7 @@ export function useRoom(
       applyRef.current(validateSettings(state.settings));
   }, []);
   const request = useCallback(async (action: string, data: unknown) => {
-    const result = await fetch(roomUrl(action), {
+    const result = await fetchWithDeadline(roomUrl(action), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -107,13 +108,11 @@ export function useRoom(
     const controller = new AbortController();
     const poll = async () => {
       try {
-        const result = await fetch(roomUrl("state"), {
-          cache: "no-store",
-          signal: AbortSignal.any([
-            controller.signal,
-            AbortSignal.timeout(3000),
-          ]),
-        });
+        const result = await fetchWithDeadline(
+          roomUrl("state"),
+          { cache: "no-store", signal: controller.signal },
+          3000,
+        );
         const data = await result.json();
         if (!mounted.current || run !== sequence.current) return;
         if (result.ok) {

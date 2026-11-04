@@ -12,5 +12,10 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 60000,
   },
+  // Room integration mutates shared server state; run it after isolated browser flows.
+  projects: [
+    { name: "browser", testIgnore: /z-room\.spec\.ts/ },
+    { name: "room", testMatch: /z-room\.spec\.ts/, dependencies: ["browser"] },
+  ],
   reporter: "list",
 });

@@ -19,7 +19,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && pnpm --filter @atmosphere/web typecheck",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "ipad:cert": "node scripts/ipad-cert.mjs",
+    "ipad:https": "node scripts/ipad-https.mjs"
   },
   "dependencies": {
     "suncalc": "1.9.0",

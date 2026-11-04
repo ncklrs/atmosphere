@@ -1021,6 +1021,7 @@ function Diagnostics({ model }: { model: Model }) {
 export default function Atmosphere({ view }: { view: View }) {
   const model = useAtmosphere();
   const [fullscreen, setFullscreen] = useState(false);
+  const [supportsFullscreen, setSupportsFullscreen] = useState(false);
   const [quiet, setQuiet] = useState(false);
   useEffect(() => {
     if (view !== "display" || !model.settings.cleanDisplay) return;
@@ -1048,6 +1049,9 @@ export default function Atmosphere({ view }: { view: View }) {
     };
   }, [view, model.settings.cleanDisplay]);
   useEffect(() => {
+    setSupportsFullscreen(
+      typeof document.documentElement.requestFullscreen === "function",
+    );
     const change = () => setFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", change);
     return () => document.removeEventListener("fullscreenchange", change);
@@ -1091,19 +1095,22 @@ export default function Atmosphere({ view }: { view: View }) {
             <span>
               <i className="status-dot on" /> LOCAL FIRST
             </span>
-            <button
-              className="fullscreen-button"
-              aria-label={fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-              onClick={() => {
-                if (document.fullscreenElement) void document.exitFullscreen();
-                else
-                  void document.documentElement
-                    .requestFullscreen()
-                    .catch(() => {});
-              }}
-            >
-              ⤢
-            </button>
+            {supportsFullscreen && (
+              <button
+                className="fullscreen-button"
+                aria-label={fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                onClick={() => {
+                  if (document.fullscreenElement)
+                    void document.exitFullscreen();
+                  else
+                    void document.documentElement
+                      .requestFullscreen()
+                      .catch(() => {});
+                }}
+              >
+                ⤢
+              </button>
+            )}
           </div>
         </header>
         <div id="content" className="content" tabIndex={-1}>

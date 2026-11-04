@@ -19,6 +19,7 @@ import {
   validateSettings,
   type Settings,
 } from "./settings";
+import { fetchWithDeadline } from "./browser/fetch";
 import { useRoom } from "./use-room";
 import { useSongVisual } from "./use-song-visual";
 export function useAtmosphere() {
@@ -85,13 +86,11 @@ export function useAtmosphere() {
     const controller = new AbortController();
     const sample = async () => {
       try {
-        const response = await fetch("/api/gateway/state", {
-          cache: "no-store",
-          signal: AbortSignal.any([
-            controller.signal,
-            AbortSignal.timeout(3000),
-          ]),
-        });
+        const response = await fetchWithDeadline(
+          "/api/gateway/state",
+          { cache: "no-store", signal: controller.signal },
+          3000,
+        );
         if (!response.ok) throw new Error("Gateway unavailable");
         const snapshot = parseSnapshot(await response.json());
         if (!snapshot) throw new Error("Invalid snapshot");
