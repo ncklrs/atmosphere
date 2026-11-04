@@ -28,7 +28,7 @@ Development host: macOS, Node.js 23.7.0, pnpm 9.12.0, local Playwright Chromium.
 - Desktop, portrait, compact and lab captures have been visually inspected. The lab adjusts the preview's aspect ratio for forced Portrait/Canvas compositions.
 - CodeRabbit CLI is installed but signed out; no external CodeRabbit review was performed. Local lint, type checking, tests and source review remain the evidence for this delivery.
 
-Final local results: **41 unit/integration tests passed across 7 files; 32 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
+Final local results: **44 unit/integration tests passed across 8 files; 36 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
 
 ## Unverified or deferred
 
@@ -88,3 +88,11 @@ Removed initial demo playback from the live view. Browser observations now use f
 Review found that the CSS engine moved static shapes rather than evolving their geometry, presets shared much of their structure, track changes changed colors abruptly, and the DOM animation approach lacked an explicit rendering workload budget. Replaced the primary visual surface with a small native WebGL renderer while retaining CSS as a fallback. Three distinct shader branches generate domain-warped aurora ribbons, liquid contour terrain and a galactic vortex with luminous filaments, eclipse core and two star depths. Palette and track seed interpolate over time without restarting the ambient clock on lyric changes.
 
 Renderer lifecycle includes bounded DPR and pixel count, hardware/software budgets, adaptive downscaling, hidden-page suspension, reduced-motion static rendering, sleep teardown, explicit GPU resource cleanup and context-loss recovery. Browser tests verify shader initialization, distinct rendered presets, the pixel budget, forced unsupported-WebGL fallback and context restoration. Existing lyric, palette, transition, accessibility and six-viewport tests pass. CodeRabbit was signed out; local code review and browser verification were completed. No real audio amplitude or beat signal is available from the WiiM metadata integration.
+
+## Six backgrounds and word-level lyric choreography
+
+Added Nova, Prism and Voyage as distinct GPU compositions, and enhanced Bloom’s curtains, Tide’s caustics and Orbit’s moving accretion highlights. A shared typed preset registry supplies validation, shader modes, lab descriptions and fallback mappings; existing stored selections remain compatible. Preset changes fade through a short dim transition, using one shader evaluation per frame and preserving the animation clock. Fallback compositions cover every preset.
+
+Replaced the large spinning phrase entrances with five deterministic word treatments: rising 3D words, alternating slides, horizontal unfolding, scattered assembly and clipped reveals. Words return to stable readable holds; parent phrases keep restrained tilt and drift. Line cues use a bounded presentation stagger, while actual word cues use their real timestamps. Short cue durations scale down the entrance. Pauses and reduced motion avoid the per-frame word loop. Existing pause/seek, contrast, musical-break and no-artwork behavior remains.
+
+Unit checks cover style differences, stagger ordering, seek determinism, short lines, readable holds and real-timestamp handling. Browser checks cover all six presets on desktop/phone, distinct fixed-time shader output, ongoing field motion, five rendered word treatments, paused/seek equivalence, real word cues and reduced motion. The live gateway remains isolated from test fixture ports.

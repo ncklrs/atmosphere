@@ -1,8 +1,14 @@
 import { memo, useState } from "react";
 import GenerativeCanvas from "./generative-canvas";
 import type { Intensity } from "../../../packages/motion-engine/index";
-export type AmbientVisual = "Bloom" | "Tide" | "Orbit";
-export const ambientVisuals: AmbientVisual[] = ["Bloom", "Tide", "Orbit"];
+import {
+  visualPresets,
+  type AmbientVisual,
+} from "../../../packages/design-system/visuals";
+export {
+  ambientVisuals,
+  type AmbientVisual,
+} from "../../../packages/design-system/visuals";
 const contours = Array.from(
   { length: 9 },
   (_, i) =>
@@ -37,9 +43,10 @@ function AmbientVisuals({
 }) {
   const [gpu, setGpu] = useState(false);
   if (sleep) return null;
+  const fallback = visualPresets[visual].fallback;
   return (
     <div
-      className={`ambient-visuals visual-${visual.toLowerCase()}`}
+      className={`ambient-visuals visual-${fallback.toLowerCase()} preset-${visual.toLowerCase()}`}
       data-renderer={gpu ? "webgl" : "css"}
       data-visual={visual}
       data-intensity={intensity}
@@ -64,7 +71,7 @@ function AmbientVisuals({
         <i className="nebula-cloud cloud-two" />
         <i className="nebula-cloud cloud-three" />
       </div>
-      {visual === "Tide" && (
+      {fallback === "Tide" && (
         <svg
           className="ambient-contours"
           viewBox="0 0 1200 800"
@@ -82,7 +89,7 @@ function AmbientVisuals({
           </g>
         </svg>
       )}
-      {visual === "Orbit" && (
+      {fallback === "Orbit" && (
         <div className="ambient-orbital">
           <div className="orbital-corona" />
           <div className="orbital-disk">

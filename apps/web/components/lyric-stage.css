@@ -357,3 +357,11 @@
     font-size: clamp(18px, 5cqw, 48px);
   }
 }
+
+.kinetic-word {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: baseline;
+  transform-origin: 50% 80%;
+  backface-visibility: hidden;
+}

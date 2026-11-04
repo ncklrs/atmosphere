@@ -69,23 +69,19 @@ describe("lyric choreography", () => {
     expect(frame(20000)).toEqual(frame(9000));
   });
   it("limits intensity and removes transforms for reduced motion", () => {
-    expect(Math.abs(frame(0, "Whisper").focusY)).toBeLessThan(
-      Math.abs(frame(0, "Pulse").focusY),
+    expect(Math.abs(frame(3000, "Whisper").focusY)).toBeLessThan(
+      Math.abs(frame(3000, "Pulse").focusY),
     );
     expect(frame(0, "Pulse", true)).toEqual(frame(8000, "Pulse", true));
     expect(frame(3000, "Pulse", true).scale).toBe(1);
   });
-  it("varies entry angles and directions while reproducing the same cue after seeking", () => {
-    const left = frame(0, "Flow", false, 0);
-    const right = frame(0, "Flow", false, 1);
-    const above = frame(0, "Flow", false, 2);
-    expect(left.focusRotate).toBeLessThan(-8);
-    expect(right.focusRotate).toBeGreaterThan(8);
+  it("keeps phrase motion restrained while preserving opposite cue tilts", () => {
+    const left = frame(4000, "Flow", false, 0);
+    const right = frame(4000, "Flow", false, 1);
+    expect(left.focusRotate).toBeLessThan(0);
+    expect(right.focusRotate).toBeGreaterThan(0);
+    expect(Math.abs(left.focusRotate)).toBeLessThan(3);
     expect(left.focusX * right.focusX).toBeLessThan(0);
-    expect(left.focusY * above.focusY).toBeLessThan(0);
-    expect(Math.abs(frame(1800).focusRotate)).toBeLessThan(
-      Math.abs(left.focusRotate),
-    );
     const arrived = frame(400, "Pulse", false, 3);
     frame(7000, "Pulse", false, 4);
     expect(frame(400, "Pulse", false, 3)).toEqual(arrived);

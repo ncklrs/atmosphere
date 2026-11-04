@@ -2,7 +2,10 @@
 import { memo, useEffect, useRef } from "react";
 import { fragmentShader, vertexShader } from "../lib/visuals/shaders";
 import type { Intensity } from "../../../packages/motion-engine/index";
-import type { AmbientVisual } from "./ambient-visuals";
+import {
+  visualPresets,
+  type AmbientVisual,
+} from "../../../packages/design-system/visuals";
 interface Props {
   visual: AmbientVisual;
   intensity: Intensity;
@@ -52,6 +55,10 @@ function GenerativeCanvas(props: Props) {
     const accentView = colors.subarray(0, 3);
     const pigmentView = colors.subarray(3, 6);
     let ready = false;
+    let activeVisual = latest.current.visual;
+    let reveal = 1;
+    element.dataset.activeVisual = activeVisual;
+    element.dataset.transition = "settled";
     let paletteKey = "",
       identity = "",
       seed = 0,
@@ -118,10 +125,25 @@ function GenerativeCanvas(props: Props) {
         (seedTarget - seed) * (reduced.matches ? 1 : Math.min(1, dt * 0.4));
       gl.uniform2f(locations.resolution, width, height);
       gl.uniform1f(locations.time, reduced.matches ? 12 : elapsed);
-      gl.uniform1f(
-        locations.mode,
-        current.visual === "Bloom" ? 0 : current.visual === "Tide" ? 1 : 2,
-      );
+      if (reduced.matches) {
+        activeVisual = current.visual;
+        reveal = 1;
+      } else if (activeVisual !== current.visual) {
+        reveal = Math.max(0, reveal - dt * 3.5);
+        if (reveal === 0) activeVisual = current.visual;
+      } else {
+        reveal = Math.min(1, reveal + dt * 2.5);
+      }
+      if (element.dataset.activeVisual !== activeVisual)
+        element.dataset.activeVisual = activeVisual;
+      const transition =
+        reveal === 1 && activeVisual === current.visual
+          ? "settled"
+          : "changing";
+      if (element.dataset.transition !== transition)
+        element.dataset.transition = transition;
+      gl.uniform1f(locations.mode, visualPresets[activeVisual].mode);
+      gl.uniform1f(locations.reveal, reveal * reveal * (3 - 2 * reveal));
       gl.uniform1f(locations.seed, seed);
       gl.uniform3fv(locations.accent, accentView);
       gl.uniform3fv(locations.pigment, pigmentView);
@@ -175,9 +197,15 @@ function GenerativeCanvas(props: Props) {
         gl.enableVertexAttribArray(position);
         gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
         locations = Object.fromEntries(
-          ["resolution", "time", "mode", "seed", "accent", "pigment"].map(
-            (name) => [name, gl.getUniformLocation(program!, name)],
-          ),
+          [
+            "resolution",
+            "time",
+            "mode",
+            "seed",
+            "accent",
+            "pigment",
+            "reveal",
+          ].map((name) => [name, gl.getUniformLocation(program!, name)]),
         );
         lost = false;
         last = 0;

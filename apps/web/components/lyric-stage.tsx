@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useMemo, useRef } from "react";
 import { motion, useAnimationFrame, useMotionValue } from "motion/react";
 import type { Cue } from "../../../packages/playback-core/index";
 import type { Intensity } from "../../../packages/motion-engine/index";
@@ -8,6 +8,12 @@ import {
   writeChoreographyFrame,
   type ChoreographyFrame,
 } from "../../../packages/motion-engine/choreography";
+
+import {
+  wordTreatment,
+  writeWordFrame,
+  type WordFrame,
+} from "../../../packages/motion-engine/word-motion";
 
 export default function LyricStage({
   cue,
@@ -26,7 +32,27 @@ export default function LyricStage({
   reduced: boolean;
   word: number;
 }) {
-  const design = choreography(cue, index, intensity);
+  const design = useMemo(
+    () => choreography(cue, index, intensity),
+    [cue, index, intensity],
+  );
+  const leadTokens = design.phrases[0].trim().split(/\s+/u).filter(Boolean);
+  const focusTokens = cue.words?.length
+    ? cue.words.map((w) => w.text)
+    : design.phrases[1].trim().split(/\s+/u).filter(Boolean);
+  const tokenCount = leadTokens.length + focusTokens.length;
+  const treatment = wordTreatment(index);
+  const nodes = useRef<(HTMLSpanElement | null)[]>([]);
+  const wordFrame = useRef<WordFrame>({
+    x: 0,
+    y: 0,
+    rotate: 0,
+    tilt: 0,
+    scaleX: 1,
+    scaleY: 1,
+    opacity: 1,
+    clip: 0,
+  });
   const anchor = useRef({ positionMs, sampledAt: 0, playing });
   const frame = useRef<ChoreographyFrame>({
     leadX: 0,
@@ -60,6 +86,29 @@ export default function LyricStage({
     scale.set(values.scale);
     leadRotate.set(values.leadRotate);
     focusRotate.set(values.focusRotate);
+    for (let i = 0; i < tokenCount; i++) {
+      const node = nodes.current[i];
+      if (!node) continue;
+      const duration = (cue.endMs ?? cue.startMs + 8000) - cue.startMs;
+      const start = cue.words?.[i]?.startMs ?? cue.startMs;
+      const frame = writeWordFrame(
+        wordFrame.current,
+        position - start,
+        duration,
+        i,
+        tokenCount,
+        treatment,
+        intensity,
+        reduced,
+        !!cue.words?.length,
+      );
+      node.style.transform = reduced
+        ? "none"
+        : `perspective(700px) translate3d(${frame.x}px, ${frame.y}px, 0) rotate(${frame.rotate}deg) rotateX(${frame.tilt}deg) scale(${frame.scaleX}, ${frame.scaleY})`;
+      node.style.opacity = String(frame.opacity);
+      node.style.clipPath =
+        frame.clip > 0 ? `inset(0 ${frame.clip}% 0 0)` : "none";
+    }
   }
   useEffect(() => {
     anchor.current = { positionMs, sampledAt: performance.now(), playing };
@@ -67,15 +116,33 @@ export default function LyricStage({
   });
   useAnimationFrame(() => {
     const sample = anchor.current;
+    if (reduced || !sample.playing) return;
     const extrapolation = sample.playing
       ? Math.min(120, Math.max(0, performance.now() - sample.sampledAt))
       : 0;
     paint(sample.positionMs + extrapolation);
   });
+  function renderWords(tokens: string[], offset: number) {
+    return tokens.map((text, i) => (
+      <Fragment key={`${cue.startMs}:${offset + i}`}>
+        <span
+          ref={(node) => {
+            nodes.current[offset + i] = node;
+          }}
+          style={{ opacity: reduced ? 1 : 0 }}
+          className={`kinetic-word ${cue.words?.length && offset + i === word ? "word-active" : ""}`}
+        >
+          {text}
+        </span>
+        {i < tokens.length - 1 ? " " : ""}
+      </Fragment>
+    ));
+  }
   return (
     <div
       className={`kinetic-stage treatment-${design.treatment} ${design.dense ? "kinetic-dense" : ""} ${!design.phrases[0] ? "single-phrase" : ""}`}
       data-treatment={design.treatment}
+      data-word-treatment={treatment}
       data-timing={cue.words?.length ? "word" : "line"}
       style={{ "--type-scale": design.typeScale } as React.CSSProperties}
     >
@@ -85,23 +152,14 @@ export default function LyricStage({
             className="kinetic-lead"
             style={{ x: leadX, y: leadY, rotate: leadRotate }}
           >
-            {design.phrases[0]}
+            {renderWords(leadTokens, 0)}
           </motion.span>
         )}{" "}
         <motion.span
           className="kinetic-focus"
           style={{ x: focusX, y: focusY, scale, rotate: focusRotate }}
         >
-          {cue.words?.length
-            ? cue.words.map((w, i) => (
-                <span
-                  key={`${w.startMs}:${i}`}
-                  className={i === word ? "word-active" : undefined}
-                >
-                  {w.text}{" "}
-                </span>
-              ))
-            : design.phrases[1]}
+          {renderWords(focusTokens, leadTokens.length)}
         </motion.span>
       </div>
       <div className="kinetic-cue-mark" aria-hidden="true">

@@ -10,6 +10,7 @@ import {
   palettes,
   trackPaletteIndex,
 } from "../../../packages/design-system/index";
+import { visualPresets } from "../../../packages/design-system/visuals";
 import AmbientVisuals, { ambientVisuals } from "./ambient-visuals";
 import LyricStage from "./lyric-stage";
 import { choreography } from "../../../packages/motion-engine/choreography";
@@ -394,11 +395,7 @@ function Lab({ model }: { model: Model }) {
             }
           />
           <p className="helper">
-            {settings.ambientVisual === "Bloom"
-              ? "Evolving aurora ribbons and clouds of colored light."
-              : settings.ambientVisual === "Tide"
-                ? "Liquid terrain with flowing luminous contours."
-                : "A flowing galactic vortex, luminous dust, and deep space."}
+            {visualPresets[settings.ambientVisual].description}
           </p>
           <Choice
             title="Composition"

@@ -1,4 +1,28 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator } from "@playwright/test";
+async function fingerprint(canvas: Locator) {
+  return canvas.evaluate((el) => {
+    const element = el as HTMLCanvasElement;
+    const gl = element.getContext("webgl")!;
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    const pixels = new Uint8Array(element.width * element.height * 4);
+    gl.readPixels(
+      0,
+      0,
+      element.width,
+      element.height,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      pixels,
+    );
+    let hash = 2166136261;
+    for (let i = 0; i < pixels.length; i += 4) {
+      hash = Math.imul(hash ^ pixels[i], 16777619);
+      hash = Math.imul(hash ^ pixels[i + 1], 16777619);
+      hash = Math.imul(hash ^ pixels[i + 2], 16777619);
+    }
+    return hash >>> 0;
+  });
+}
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() =>
     localStorage.setItem(
@@ -11,9 +35,10 @@ test.beforeEach(async ({ page }) => {
     ),
   );
 });
-test("GPU presets render distinct evolving scenes with a bounded pixel budget", async ({
+test("six GPU presets render distinct fixed-time scenes within the pixel budget", async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/lab");
   const layer = page.locator(".ambient-visuals");
   await expect(layer).toHaveAttribute("data-renderer", "webgl");
@@ -28,17 +53,24 @@ test("GPU presets render distinct evolving scenes with a bounded pixel budget", 
       height: (el as HTMLCanvasElement).height,
     }));
   expect(dimensions.width * dimensions.height).toBeLessThan(523000);
-  const captures: Buffer[] = [];
-  for (const preset of ["Orbit", "Bloom", "Tide"]) {
+  const captures: number[] = [];
+  for (const preset of ["Orbit", "Bloom", "Tide", "Nova", "Prism", "Voyage"]) {
     await page.getByRole("button", { name: preset, exact: true }).click();
-    await page.waitForTimeout(150);
-    captures.push(await page.locator("canvas.generative-canvas").screenshot());
+    await expect(page.locator("canvas.generative-canvas")).toHaveAttribute(
+      "data-active-visual",
+      preset,
+    );
+    await expect(page.locator("canvas.generative-canvas")).toHaveAttribute(
+      "data-transition",
+      "settled",
+    );
+    captures.push(await fingerprint(page.locator("canvas.generative-canvas")));
     await page
       .locator(".preview")
       .screenshot({ path: `test-results/screenshots/gpu-${preset}.png` });
   }
-  expect(captures[0].equals(captures[1])).toBe(false);
-  expect(captures[1].equals(captures[2])).toBe(false);
+  for (let i = 1; i < captures.length; i++)
+    expect(captures[i - 1] === captures[i]).toBe(false);
 });
 test("unavailable WebGL retains the CSS scene", async ({ page }) => {
   await page.addInitScript(() => {
@@ -82,4 +114,21 @@ test("GPU context loss reveals fallback and restoration resumes rendering", asyn
     "data-renderer",
     "webgl",
   );
+});
+
+test("the GPU field evolves over time without changing preset or restarting", async ({
+  page,
+}) => {
+  await page.goto("/lab");
+  const canvas = page.locator("canvas.generative-canvas");
+  await expect(page.locator(".ambient-visuals")).toHaveAttribute(
+    "data-renderer",
+    "webgl",
+  );
+  await expect(canvas).toHaveCSS("opacity", "1");
+  const before = await fingerprint(canvas);
+  await page.waitForTimeout(400);
+  const after = await fingerprint(canvas);
+  expect(before).not.toBe(after);
+  await expect(canvas).toHaveAttribute("data-active-visual", "Orbit");
 });

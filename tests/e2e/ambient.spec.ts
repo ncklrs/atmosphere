@@ -27,7 +27,14 @@ for (const [width, height] of [
     await page.goto("/lab");
     await page.getByLabel("Show synchronized lyrics").uncheck();
     await mkdir("test-results/screenshots/ambient", { recursive: true });
-    for (const preset of ["Bloom", "Tide", "Orbit"]) {
+    for (const preset of [
+      "Bloom",
+      "Tide",
+      "Orbit",
+      "Nova",
+      "Prism",
+      "Voyage",
+    ]) {
       await page.getByRole("button", { name: preset, exact: true }).click();
       await expect(page.locator(".ambient-visuals")).toHaveAttribute(
         "data-visual",
@@ -45,7 +52,7 @@ for (const [width, height] of [
     }
     await page.reload();
     await expect(
-      page.getByRole("button", { name: "Orbit", exact: true }),
+      page.getByRole("button", { name: "Voyage", exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
     expect(errors).toEqual([]);
   });

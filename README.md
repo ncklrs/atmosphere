@@ -109,3 +109,9 @@ Live browsers read same-origin `/api/gateway/state` and `/api/gateway/capabiliti
 ### Generative renderer
 
 The primary ambient engine is a dependency-free WebGL fragment shader. Orbit produces a galactic vortex with luminous filaments and stars; Bloom produces domain-warped aurora ribbons; Tide produces evolving liquid contours. Album colors interpolate through the renderer, and track identity seeds the field. The clock continues through lyric breaks without React frame renders. Hardware rendering targets roughly 30 fps with a 520k-pixel ceiling; detected software renderers use a 90k-pixel/12 fps budget. Sustained slow frames reduce resolution further. Hidden pages stop drawing, reduced motion uses a static field, and sleep removes the canvas. Context loss or unavailable WebGL reveals the CSS fallback. These are procedural visuals, not beat detection.
+
+### Background library and word entrances
+
+The visual lab now offers six backgrounds: Bloom (layered aurora curtains), Tide (liquid contours and caustics), Orbit (galactic accretion), Nova (stellar corona and plasma), Prism (faceted glass and spectral light), and Voyage (perspective star travel through nebula clouds). Selection fades softly between presets without resetting the ambient clock. Every preset retains a CSS fallback and participates in the existing album palette, intensity, sleep and reduced-motion behavior.
+
+Lyric lines cycle through five word-level entrances: rise, slide, unfold, scatter and reveal. Phrase blocks retain only gentle tilt and drift. For line-timed lyrics, words share a short presentation stagger; these are not invented word timestamps. Real enhanced-LRC timestamps control word entrances when available. All transforms are derived from playback position, so pauses freeze them and seeks reproduce them. Reduced motion shows the whole line immediately.

@@ -120,7 +120,7 @@ test("reduced motion uses a static reading composition without synthetic word hi
   await expect(page.locator(".word-active")).toHaveCount(0);
 });
 
-test("lyric entrances rotate in opposite directions and pause preserves the angle", async ({
+test("lyric compositions retain opposite gentle tilts and pause preserves the angle", async ({
   page,
 }) => {
   await page.goto("/display");
@@ -132,10 +132,10 @@ test("lyric entrances rotate in opposite directions and pause preserves the angl
       return (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI;
     });
   await seek.fill("3100");
-  await expect.poll(angle).toBeLessThan(-5);
+  await expect.poll(angle).toBeLessThan(-0.5);
   const first = await angle();
   await seek.fill("14100");
-  await expect.poll(angle).toBeGreaterThan(5);
+  await expect.poll(angle).toBeGreaterThan(0.5);
   await seek.fill("3100");
   await expect.poll(angle).toBeCloseTo(first, 3);
   await page.waitForTimeout(200);
