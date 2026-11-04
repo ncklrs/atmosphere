@@ -182,7 +182,7 @@ function DisplayScene({
         prism={settings.prism}
         palette={palette}
         identity={p.trackKey || "ambient"}
-        visual={settings.ambientVisual}
+        visual={model.visual}
         intensity={settings.intensity}
         focus={hasLine ? "lyrics" : "ambient"}
         sleep={isSleep}
@@ -385,20 +385,40 @@ function Lab({ model }: { model: Model }) {
         </div>
         <aside className="control-panel">
           <p className="eyebrow">COMPOSE YOUR ROOM</p>
+          <label className="switch-row">
+            Auto per song
+            <input
+              type="checkbox"
+              aria-label="Auto-rotate visuals per song"
+              checked={settings.autoVisuals}
+              onChange={(event) =>
+                updateSettings({
+                  autoVisuals: event.target.checked,
+                  ...(!event.target.checked
+                    ? { ambientVisual: model.visual }
+                    : {}),
+                })
+              }
+            />
+          </label>
+          <p className="helper">
+            {settings.autoVisuals
+              ? `Now showing ${model.visual}. A new background for each song.`
+              : "Choose a background, or rotate automatically when songs change."}
+          </p>
           <Choice
             title="Ambient visuals"
             options={ambientVisuals}
-            value={settings.ambientVisual}
+            value={model.visual}
             onChange={(value) =>
               updateSettings({
                 ambientVisual: value as typeof settings.ambientVisual,
+                autoVisuals: false,
               })
             }
           />
-          <p className="helper">
-            {visualPresets[settings.ambientVisual].description}
-          </p>
-          {settings.ambientVisual === "Prism" && (
+          <p className="helper">{visualPresets[model.visual].description}</p>
+          {model.visual === "Prism" && (
             <fieldset className="prism-controls">
               <legend>Shape Prism</legend>
               {(

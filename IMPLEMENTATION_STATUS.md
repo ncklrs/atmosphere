@@ -28,7 +28,7 @@ Development host: macOS, Node.js 23.7.0, pnpm 9.12.0, local Playwright Chromium.
 - Desktop, portrait, compact and lab captures have been visually inspected. The lab adjusts the preview's aspect ratio for forced Portrait/Canvas compositions.
 - CodeRabbit CLI is installed but signed out; no external CodeRabbit review was performed. Local lint, type checking, tests and source review remain the evidence for this delivery.
 
-Final local results: **47 unit/integration tests passed across 8 files; 37 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
+Final local results: **49 unit/integration tests passed across 9 files; 38 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
 
 ## Unverified or deferred
 
@@ -102,3 +102,9 @@ Unit checks cover style differences, stagger ordering, seek determinism, short l
 Added independent persisted light, motion and facet-size settings for Prism, with bounded migration defaults that dim/slow the effect and enlarge facets. GPU motion uses a separate clock; zero speed also settles seed/palette interpolation so the current field remains still while lyrics continue. CSS fallback respects still mode and light settings. Browser regression tests verify actual GPU stability at zero speed, changed output from facet size, persistence and unchanged lyric preference.
 
 Fixed an intermittent lyric-delay cause: network exceptions and service errors were converted into null results and cached for the same 60 seconds as confirmed lyric misses. Service failures now throw, and the resolver caches temporary failures for 3 seconds, backing off through 6/12/15 seconds. Confirmed 404s and unmatched results retain their one-minute cache. Tests verify failure/miss classification, deduplication, backoff and prompt recovery. Provider coverage and provider response times can still delay or prevent lyric availability; this fix removes the artificial minute after a temporary failure.
+
+## Per-song visual rotation
+
+Added the opt-in Auto per song setting to the visual lab. Rotation cycles through all six presets without immediate repeats, using source/title/artist identity so duration, album and artwork enrichment do not spuriously advance the scene. Empty or incomplete metadata holds the previous state. Local rotation state preserves the current track/background through reloads and route changes. Disabling auto holds the current preset, and clicking a preset switches to manual mode. The active preset remains visible in the chooser, with Prism controls shown whenever it is active.
+
+Unit tests cover full-library cycling, stable identity, missing metadata and persisted state validation. Browser checks verify track advancement, stability during seek-like position updates, reload persistence, disabling/re-enabling auto, and manual pinning across later tracks. Existing settings migrate with auto disabled.

@@ -15,6 +15,7 @@ export interface Settings {
   source: "demo" | "gateway";
   intensity: Intensity;
   ambientVisual: AmbientVisual;
+  autoVisuals: boolean;
   prism: PrismControls;
   composition: string;
   calibrationMs: number;
@@ -27,6 +28,7 @@ export const defaults: Settings = {
   source: "demo",
   intensity: "Flow",
   ambientVisual: "Orbit",
+  autoVisuals: false,
   prism: defaultPrism,
   composition: "Auto",
   calibrationMs: 0,
@@ -83,6 +85,7 @@ export function validateSettings(input: unknown): Settings {
       ? s.override
       : null;
   return {
+    autoVisuals: s.autoVisuals === true,
     prism: {
       light: bounded(s.prism?.light, defaultPrism.light),
       motion: bounded(s.prism?.motion, defaultPrism.motion),

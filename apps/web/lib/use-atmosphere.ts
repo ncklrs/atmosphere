@@ -19,6 +19,7 @@ import {
   validateSettings,
   type Settings,
 } from "./settings";
+import { useSongVisual } from "./use-song-visual";
 export function useAtmosphere() {
   const [settings, setSettings] = useState<Settings>(defaults);
   const [ready, setReady] = useState(false);
@@ -197,7 +198,9 @@ export function useAtmosphere() {
       setSettings((previous) => validateSettings({ ...previous, ...patch })),
     [],
   );
+  const visual = useSongVisual(playback, settings, ready);
   return {
+    visual,
     ready,
     settings,
     updateSettings,
