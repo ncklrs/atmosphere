@@ -37,7 +37,8 @@ the display computer; clean viewing can be controlled remotely.
 
 Settings become shared only after explicit owner enablement. They are validated
 by the gateway and saved atomically when `ROOM_STATE_FILE` is configured. The file
-contains presentation preferences and per-song identifiers, no Spotify credentials
+contains presentation preferences, per-song identifiers and any supplied approximate
+solar coordinates, no Spotify credentials
 or audio. `.data/` is Git-ignored. When sharing is off, each browser keeps its local
 preferences. Re-enabling adopts the owner's current preferences.
 

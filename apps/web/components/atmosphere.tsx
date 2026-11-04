@@ -796,8 +796,8 @@ function SettingsPage({ model }: { model: Model }) {
             </label>
           </div>
           <p className="helper">
-            Coordinates stay in this browser. Without solar events, use 08:00
-            day / 18:00 dusk / 21:00 night.
+            Coordinates stay on this computer and paired controllers. Without
+            solar events, use 08:00 day / 18:00 dusk / 21:00 night.
           </p>
           <div className="field-pair">
             <label className="field">
