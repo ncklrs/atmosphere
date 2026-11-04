@@ -41,3 +41,14 @@ export const ambientVisuals = Object.keys(visualPresets) as AmbientVisual[];
 export function isAmbientVisual(value: unknown): value is AmbientVisual {
   return typeof value === "string" && Object.hasOwn(visualPresets, value);
 }
+
+export interface PrismControls {
+  light: number;
+  motion: number;
+  facetSize: number;
+}
+export const defaultPrism: PrismControls = {
+  light: 55,
+  motion: 30,
+  facetSize: 70,
+};

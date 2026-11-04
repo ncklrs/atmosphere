@@ -5,9 +5,11 @@ import type { Intensity } from "../../../packages/motion-engine/index";
 import {
   visualPresets,
   type AmbientVisual,
+  type PrismControls,
 } from "../../../packages/design-system/visuals";
 interface Props {
   visual: AmbientVisual;
+  prism: PrismControls;
   intensity: Intensity;
   palette: readonly string[];
   identity: string;
@@ -43,6 +45,7 @@ function GenerativeCanvas(props: Props) {
       lost = false,
       last = 0,
       elapsed = 0,
+      prismElapsed = 0,
       budget = software ? 90000 : 520000,
       slow = 0;
     let program: WebGLProgram | null = null,
@@ -105,6 +108,8 @@ function GenerativeCanvas(props: Props) {
             : current.intensity === "Whisper"
               ? 0.35
               : 0.75);
+      if (!reduced.matches) prismElapsed += (dt * current.prism.motion) / 100;
+      const still = current.visual === "Prism" && current.prism.motion === 0;
       const key = current.palette.join(":");
       if (key !== paletteKey) {
         target.set([...rgb(current.palette[0]), ...rgb(current.palette[1])]);
@@ -113,7 +118,7 @@ function GenerativeCanvas(props: Props) {
       for (let i = 0; i < 6; i++)
         colors[i] +=
           (target[i] - colors[i]) *
-          (reduced.matches ? 1 : Math.min(1, dt * 0.6));
+          (reduced.matches || still ? 1 : Math.min(1, dt * 0.6));
       if (identity !== current.identity) {
         identity = current.identity;
         let hash = 0;
@@ -122,7 +127,8 @@ function GenerativeCanvas(props: Props) {
         seedTarget = ((hash >>> 0) % 1000) / 100;
       }
       seed +=
-        (seedTarget - seed) * (reduced.matches ? 1 : Math.min(1, dt * 0.4));
+        (seedTarget - seed) *
+        (reduced.matches || still ? 1 : Math.min(1, dt * 0.4));
       gl.uniform2f(locations.resolution, width, height);
       gl.uniform1f(locations.time, reduced.matches ? 12 : elapsed);
       if (reduced.matches) {
@@ -144,6 +150,9 @@ function GenerativeCanvas(props: Props) {
         element.dataset.transition = transition;
       gl.uniform1f(locations.mode, visualPresets[activeVisual].mode);
       gl.uniform1f(locations.reveal, reveal * reveal * (3 - 2 * reveal));
+      gl.uniform1f(locations.prismTime, reduced.matches ? 12 : prismElapsed);
+      gl.uniform1f(locations.prismLight, current.prism.light / 70);
+      gl.uniform1f(locations.prismScale, 6 - current.prism.facetSize / 20);
       gl.uniform1f(locations.seed, seed);
       gl.uniform3fv(locations.accent, accentView);
       gl.uniform3fv(locations.pigment, pigmentView);
@@ -205,6 +214,9 @@ function GenerativeCanvas(props: Props) {
             "accent",
             "pigment",
             "reveal",
+            "prismTime",
+            "prismLight",
+            "prismScale",
           ].map((name) => [name, gl.getUniformLocation(program!, name)]),
         );
         lost = false;

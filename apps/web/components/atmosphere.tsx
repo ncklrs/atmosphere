@@ -179,6 +179,7 @@ function DisplayScene({
     >
       <div className="palette-backdrop" />
       <AmbientVisuals
+        prism={settings.prism}
         palette={palette}
         identity={p.trackKey || "ambient"}
         visual={settings.ambientVisual}
@@ -397,6 +398,47 @@ function Lab({ model }: { model: Model }) {
           <p className="helper">
             {visualPresets[settings.ambientVisual].description}
           </p>
+          {settings.ambientVisual === "Prism" && (
+            <fieldset className="prism-controls">
+              <legend>Shape Prism</legend>
+              {(
+                [
+                  ["light", "Light intensity"],
+                  ["motion", "Motion speed"],
+                  ["facetSize", "Facet size"],
+                ] as const
+              ).map(([key, label]) => (
+                <label className="field" key={key}>
+                  {label}
+                  <span>
+                    {key === "motion" && settings.prism[key] === 0
+                      ? "Still"
+                      : `${settings.prism[key]}%`}
+                  </span>
+                  <input
+                    aria-label={`Prism ${label.toLowerCase()}`}
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={settings.prism[key]}
+                    onChange={(event) =>
+                      updateSettings({
+                        prism: {
+                          ...settings.prism,
+                          [key]: Number(event.target.value),
+                        },
+                      })
+                    }
+                  />
+                </label>
+              ))}
+              <p className="helper">
+                Larger facets feel quieter. Set motion to zero for a still
+                background.
+              </p>
+            </fieldset>
+          )}
           <Choice
             title="Composition"
             options={["Auto", "Cinema", "Canvas", "Portrait", "Companion"]}

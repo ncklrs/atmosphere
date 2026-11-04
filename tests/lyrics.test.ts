@@ -75,8 +75,54 @@ describe("provider safety", () => {
     expect(resolve).toHaveBeenCalledTimes(1);
     await resolver.resolve(p);
     expect(resolve).toHaveBeenCalledTimes(1);
-    now = 60001;
+    now = 3001;
     await resolver.resolve(p);
     expect(resolve).toHaveBeenCalledTimes(2);
+    now = 6002;
+    await resolver.resolve(p);
+    expect(resolve).toHaveBeenCalledTimes(2);
+    now = 9002;
+    await resolver.resolve(p);
+    expect(resolve).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe("temporary lyric lookup failures", () => {
+  it("does not turn service failures into a confirmed lyric miss", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(new Response("unavailable", { status: 503 }));
+    const provider = new LrclibProvider(fetcher);
+    await expect(provider.resolve(demoPlayback(0, 0))).rejects.toThrow("503");
+    fetcher.mockResolvedValue(new Response("missing", { status: 404 }));
+    expect(await provider.resolve(demoPlayback(0, 0))).toBeNull();
+  });
+  it("recovers promptly after a transient failure while keeping confirmed misses cached", async () => {
+    let now = 0;
+    const track = demoPlayback(0, 0);
+    const result = {
+      trackKey: track.trackKey,
+      cues: [{ startMs: 0, text: "Fixture" }],
+      provider: "Fixture",
+      attribution: "Fixture",
+      timing: "line" as const,
+    };
+    const resolve = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("timeout"))
+      .mockResolvedValue(result);
+    const resolver = new LyricResolver({ name: "Fixture", resolve }, () => now);
+    expect(await resolver.resolve(track)).toBeNull();
+    now = 3001;
+    expect(await resolver.resolve(track)).toEqual(result);
+    const missing = vi.fn().mockResolvedValue(null);
+    const misses = new LyricResolver(
+      { name: "Fixture", resolve: missing },
+      () => now,
+    );
+    await misses.resolve(track);
+    now += 15000;
+    await misses.resolve(track);
+    expect(missing).toHaveBeenCalledTimes(1);
   });
 });

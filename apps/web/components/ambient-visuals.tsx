@@ -4,6 +4,7 @@ import type { Intensity } from "../../../packages/motion-engine/index";
 import {
   visualPresets,
   type AmbientVisual,
+  type PrismControls,
 } from "../../../packages/design-system/visuals";
 export {
   ambientVisuals,
@@ -33,6 +34,7 @@ function AmbientVisuals({
   sleep,
   palette,
   identity,
+  prism,
 }: {
   visual: AmbientVisual;
   intensity: Intensity;
@@ -40,6 +42,7 @@ function AmbientVisuals({
   sleep: boolean;
   palette: readonly string[];
   identity: string;
+  prism: PrismControls;
 }) {
   const [gpu, setGpu] = useState(false);
   if (sleep) return null;
@@ -51,9 +54,20 @@ function AmbientVisuals({
       data-visual={visual}
       data-intensity={intensity}
       data-focus={focus}
+      data-still={visual === "Prism" && prism.motion === 0 ? "true" : "false"}
+      style={
+        visual === "Prism"
+          ? ({
+              "--prism-light": prism.light / 70,
+              "--prism-size": prism.facetSize / 100,
+              "--ambient-tempo": 100 / Math.max(1, prism.motion),
+            } as React.CSSProperties)
+          : undefined
+      }
       aria-hidden="true"
     >
       <GenerativeCanvas
+        prism={prism}
         visual={visual}
         intensity={intensity}
         palette={palette}

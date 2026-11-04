@@ -28,7 +28,7 @@ Development host: macOS, Node.js 23.7.0, pnpm 9.12.0, local Playwright Chromium.
 - Desktop, portrait, compact and lab captures have been visually inspected. The lab adjusts the preview's aspect ratio for forced Portrait/Canvas compositions.
 - CodeRabbit CLI is installed but signed out; no external CodeRabbit review was performed. Local lint, type checking, tests and source review remain the evidence for this delivery.
 
-Final local results: **44 unit/integration tests passed across 8 files; 36 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
+Final local results: **47 unit/integration tests passed across 8 files; 37 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
 
 ## Unverified or deferred
 
@@ -96,3 +96,9 @@ Added Nova, Prism and Voyage as distinct GPU compositions, and enhanced Bloom’
 Replaced the large spinning phrase entrances with five deterministic word treatments: rising 3D words, alternating slides, horizontal unfolding, scattered assembly and clipped reveals. Words return to stable readable holds; parent phrases keep restrained tilt and drift. Line cues use a bounded presentation stagger, while actual word cues use their real timestamps. Short cue durations scale down the entrance. Pauses and reduced motion avoid the per-frame word loop. Existing pause/seek, contrast, musical-break and no-artwork behavior remains.
 
 Unit checks cover style differences, stagger ordering, seek determinism, short lines, readable holds and real-timestamp handling. Browser checks cover all six presets on desktop/phone, distinct fixed-time shader output, ongoing field motion, five rendered word treatments, paused/seek equivalence, real word cues and reduced motion. The live gateway remains isolated from test fixture ports.
+
+## Prism controls and lyric retry recovery
+
+Added independent persisted light, motion and facet-size settings for Prism, with bounded migration defaults that dim/slow the effect and enlarge facets. GPU motion uses a separate clock; zero speed also settles seed/palette interpolation so the current field remains still while lyrics continue. CSS fallback respects still mode and light settings. Browser regression tests verify actual GPU stability at zero speed, changed output from facet size, persistence and unchanged lyric preference.
+
+Fixed an intermittent lyric-delay cause: network exceptions and service errors were converted into null results and cached for the same 60 seconds as confirmed lyric misses. Service failures now throw, and the resolver caches temporary failures for 3 seconds, backing off through 6/12/15 seconds. Confirmed 404s and unmatched results retain their one-minute cache. Tests verify failure/miss classification, deduplication, backoff and prompt recovery. Provider coverage and provider response times can still delay or prevent lyric availability; this fix removes the artificial minute after a temporary failure.

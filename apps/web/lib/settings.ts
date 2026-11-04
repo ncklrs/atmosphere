@@ -7,12 +7,15 @@ import {
 import type { Intensity } from "../../../packages/motion-engine/index";
 import {
   isAmbientVisual,
+  defaultPrism,
+  type PrismControls,
   type AmbientVisual,
 } from "../../../packages/design-system/visuals";
 export interface Settings {
   source: "demo" | "gateway";
   intensity: Intensity;
   ambientVisual: AmbientVisual;
+  prism: PrismControls;
   composition: string;
   calibrationMs: number;
   lyrics: boolean;
@@ -24,6 +27,7 @@ export const defaults: Settings = {
   source: "demo",
   intensity: "Flow",
   ambientVisual: "Orbit",
+  prism: defaultPrism,
   composition: "Auto",
   calibrationMs: 0,
   lyrics: true,
@@ -35,6 +39,10 @@ export const storageKey = "atmosphere.settings.v1";
 export function validateSettings(input: unknown): Settings {
   if (!input || typeof input !== "object") return defaults;
   const s = input as Partial<Settings>;
+  const bounded = (value: unknown, fallback: number) =>
+    typeof value === "number" && Number.isFinite(value)
+      ? Math.max(0, Math.min(100, value))
+      : fallback;
   const c = { ...defaultCircadian, ...(s.circadian ?? {}) };
   try {
     new Intl.DateTimeFormat("en", { timeZone: c.timezone }).format();
@@ -75,6 +83,11 @@ export function validateSettings(input: unknown): Settings {
       ? s.override
       : null;
   return {
+    prism: {
+      light: bounded(s.prism?.light, defaultPrism.light),
+      motion: bounded(s.prism?.motion, defaultPrism.motion),
+      facetSize: bounded(s.prism?.facetSize, defaultPrism.facetSize),
+    },
     source: s.source === "gateway" ? "gateway" : "demo",
     intensity: ["Whisper", "Flow", "Pulse"].includes(s.intensity ?? "")
       ? s.intensity!

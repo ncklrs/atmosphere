@@ -29,3 +29,20 @@ describe("ambient visual preferences", () => {
     ).toBe("Orbit");
   });
 });
+
+it("migrates and bounds independent Prism controls", () => {
+  expect(
+    validateSettings({ source: "gateway", ambientVisual: "Prism" }),
+  ).toMatchObject({
+    source: "gateway",
+    ambientVisual: "Prism",
+    prism: { light: 55, motion: 30, facetSize: 70 },
+  });
+  expect(
+    validateSettings({ prism: { light: -10, motion: 0, facetSize: 120 } })
+      .prism,
+  ).toEqual({ light: 0, motion: 0, facetSize: 100 });
+  expect(
+    validateSettings({ prism: { light: "bad", motion: null } }).prism,
+  ).toEqual({ light: 55, motion: 30, facetSize: 70 });
+});

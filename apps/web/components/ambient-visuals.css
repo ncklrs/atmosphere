@@ -645,3 +645,27 @@
 .preset-voyage .ambient-dust {
   opacity: 1;
 }
+
+.prism-controls {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 14px;
+  margin: 0 0 24px;
+}
+.prism-controls legend {
+  font-size: 11px;
+  padding: 0 6px;
+  color: var(--accent);
+}
+.prism-controls .helper {
+  font-size: 10px;
+}
+.preset-prism[data-renderer="css"] {
+  filter: brightness(var(--prism-light, 0.8));
+}
+.preset-prism[data-renderer="css"] .ambient-contours {
+  transform: rotate(-25deg) scale(calc(0.8 + var(--prism-size, 0.7)));
+}
+.preset-prism[data-still="true"] * {
+  animation-play-state: paused !important;
+}

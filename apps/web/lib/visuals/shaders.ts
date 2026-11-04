@@ -9,6 +9,9 @@ uniform float time;
 uniform float mode;
 uniform float seed;
 uniform float reveal;
+uniform float prismTime;
+uniform float prismLight;
+uniform float prismScale;
 uniform vec3 accent;
 uniform vec3 pigment;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7))) * 43758.5453); }
@@ -25,7 +28,7 @@ mat2 turn(float a) { return mat2(cos(a),-sin(a),sin(a),cos(a)); }
 void main() {
   vec2 uv=gl_FragCoord.xy/resolution;
   vec2 p=(gl_FragCoord.xy-.5*resolution)/min(resolution.x,resolution.y);
-  float t=time;
+  float t=mode>3.5 && mode<4.5 ? prismTime : time;
   p += .08*vec2(sin(t*.12+seed),cos(t*.09+seed));
   vec3 base=mix(vec3(.025,.016,.065),pigment*.14,.65);
   vec3 cool=mix(accent,vec3(.15,.48,.8),.3);
@@ -95,7 +98,7 @@ void main() {
     color=mix(color,star,1.-smoothstep(edge-.005,edge+.005,r));
     color+=warm*exp(-r*2.)*.12;
   } else if(mode<4.5) {
-    q=turn(-.4+.08*sin(t*.08))*p*3.;
+    q=turn(-.4+.08*sin(t*.08))*p*prismScale;
     vec2 cell=floor(q), local=fract(q);
     float first=10., second=10., facet=0.;
     vec2 closest=vec2(0.);
@@ -153,6 +156,7 @@ void main() {
   }
   float vignette=1.-.45*dot(uv-.5,uv-.5);
   color=vec3(1.)-exp(-max(color,vec3(0.))*1.35);
-  gl_FragColor=vec4(color*vignette*reveal,1.);
+  float light=mode>3.5 && mode<4.5 ? prismLight : 1.;
+  gl_FragColor=vec4(color*vignette*reveal*light,1.);
 }
 `;

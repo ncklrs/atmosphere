@@ -99,7 +99,8 @@ export class LrclibProvider implements LyricProvider {
       signal: AbortSignal.timeout(3000),
       headers: { "User-Agent": "Atmosphere/0.1 (local household prototype)" },
     });
-    if (!response.ok) return null;
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`Lyric lookup HTTP ${response.status}`);
     const c = (await response.json()) as Candidate;
     if (
       !matches(track, c) ||
@@ -123,7 +124,7 @@ export class LrclibProvider implements LyricProvider {
 export class LyricResolver {
   private cache = new Map<
     string,
-    { expires: number; result: LyricResult | null }
+    { expires: number; result: LyricResult | null; failures: number }
   >();
   private pending = new Map<string, Promise<LyricResult | null>>();
   constructor(
@@ -136,15 +137,27 @@ export class LyricResolver {
     if (cached && cached.expires > this.now()) return cached.result;
     const existing = this.pending.get(key);
     if (existing) return existing;
+    let failed = false;
     const request = this.provider
       .resolve(track)
-      .catch(() => null)
+      .catch(() => {
+        failed = true;
+        return null;
+      })
       .then((result) => {
         if (this.cache.size >= 100)
           this.cache.delete(this.cache.keys().next().value!);
+        const failures = failed ? (cached?.failures ?? 0) + 1 : 0;
         this.cache.set(key, {
           result,
-          expires: this.now() + (result ? 3600000 : 60000),
+          failures,
+          expires:
+            this.now() +
+            (failed
+              ? Math.min(15000, 3000 * 2 ** Math.min(3, failures - 1))
+              : result
+                ? 3600000
+                : 60000),
         });
         this.pending.delete(key);
         return result;
