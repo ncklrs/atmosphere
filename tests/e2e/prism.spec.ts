@@ -1,3 +1,4 @@
+import { openLabPanels } from "./lab-panels";
 import { test, expect, type Locator } from "@playwright/test";
 async function pixels(canvas: Locator) {
   return canvas.evaluate((el) => {
@@ -27,6 +28,7 @@ test("Prism controls persist, alter the field, and stop motion independently of 
       );
   });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page.getByRole("button", { name: "Pause demo" }).click();
   const canvas = page.locator("canvas.generative-canvas");
   await expect(page.locator(".ambient-visuals")).toHaveAttribute(
@@ -49,6 +51,7 @@ test("Prism controls persist, alter the field, and stop motion independently of 
   await expect.poll(() => pixels(canvas)).not.toBe(before);
   await page.getByLabel("Prism light intensity").fill("30");
   await page.reload();
+  await openLabPanels(page);
   await expect(page.getByLabel("Prism motion speed")).toHaveValue("0");
   await expect(page.getByLabel("Prism light intensity")).toHaveValue("30");
   await expect(page.getByLabel("Prism facet size")).toHaveValue("25");

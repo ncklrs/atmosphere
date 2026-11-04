@@ -1,3 +1,4 @@
+import { openLabPanels } from "./lab-panels";
 import { test, expect, type Locator } from "@playwright/test";
 import { demoPlayback } from "../../packages/fixtures/index";
 async function pixels(canvas: Locator) {
@@ -58,6 +59,7 @@ test("lyrics visibly direct the background, remain deterministic on pause/seeks,
   page,
 }) => {
   await page.goto("/lab");
+  await openLabPanels(page);
   await page.getByRole("button", { name: "Pause demo", exact: true }).click();
   const canvas = page.locator("canvas.generative-canvas"),
     position = page.getByLabel("Demo playback position");
@@ -88,6 +90,7 @@ test("lyrics visibly direct the background, remain deterministic on pause/seeks,
   await position.fill("3400");
   expect(await pixels(canvas)).toBe(quiet);
   await page.reload();
+  await openLabPanels(page);
   await expect(page.getByLabel("Song dynamics", { exact: true })).toHaveValue(
     "0",
   );
@@ -155,6 +158,7 @@ test("reduced motion removes lyric and song movement while retaining album color
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page.getByRole("button", { name: "Pause demo", exact: true }).click();
   const canvas = page.locator("canvas.generative-canvas");
   await page.getByLabel("Demo playback position").fill("3400");

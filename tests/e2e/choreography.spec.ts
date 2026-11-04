@@ -20,7 +20,7 @@ for (const [width, height] of [
   [800, 480],
   [390, 844],
 ]) {
-  test(`five lyric compositions remain readable at ${width}x${height}`, async ({
+  test(`phrase-aware compositions remain readable at ${width}x${height}`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height });
@@ -29,10 +29,10 @@ for (const [width, height] of [
     await mkdir("test-results/screenshots/choreography", { recursive: true });
     for (const [i, name] of [
       "cascade",
-      "split",
-      "monument",
-      "margin",
       "horizon",
+      "horizon",
+      "cascade",
+      "split",
     ].entries()) {
       if (i > 0)
         await page
@@ -88,7 +88,7 @@ test("lyric transforms freeze on pause and are reproduced by a seek", async ({
     .fill("28500");
   await expect(page.locator(".kinetic-stage")).toHaveAttribute(
     "data-treatment",
-    "monument",
+    "horizon",
   );
   await page
     .getByRole("slider", { name: "Demo playback position" })

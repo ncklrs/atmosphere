@@ -19,6 +19,7 @@ import {
   validateSettings,
   type Settings,
 } from "./settings";
+import { useRoom } from "./use-room";
 import { useSongVisual } from "./use-song-visual";
 export function useAtmosphere() {
   const [settings, setSettings] = useState<Settings>(defaults);
@@ -194,13 +195,28 @@ export function useAtmosphere() {
     },
     [settings.source, updatePlayback],
   );
+  const settingsRef = useRef(settings);
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+  const applyRoomSettings = useCallback((next: Settings) => {
+    settingsRef.current = next;
+    setSettings(next);
+  }, []);
+  const room = useRoom(settings, ready, applyRoomSettings);
+  const { publish } = room;
   const updateSettings = useCallback(
-    (patch: Partial<Settings>) =>
-      setSettings((previous) => validateSettings({ ...previous, ...patch })),
-    [],
+    (patch: Partial<Settings>) => {
+      const next = validateSettings({ ...settingsRef.current, ...patch });
+      settingsRef.current = next;
+      setSettings(next);
+      publish(patch);
+    },
+    [publish],
   );
   const visual = useSongVisual(playback, settings, ready);
   return {
+    room,
     visual,
     ready,
     settings,

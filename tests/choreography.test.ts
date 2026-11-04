@@ -28,17 +28,24 @@ const frame = (
     index,
   );
 describe("lyric choreography", () => {
-  it("assigns different full-canvas compositions deterministically", () => {
-    const cue = { startMs: 0, text: "Let the room become a river" };
+  it("chooses layouts from content and reading time, keeping repeated text recognizable", () => {
+    const cue = {
+      startMs: 0,
+      endMs: 8000,
+      text: "Let the room become a river",
+    };
+    expect(choreography(cue, 0, "Flow")).toEqual(choreography(cue, 12, "Flow"));
     expect(
-      new Set(
-        Array.from(
-          { length: 5 },
-          (_, i) => choreography(cue, i, "Flow").treatment,
-        ),
-      ).size,
-    ).toBe(5);
-    expect(choreography(cue, 2, "Flow")).toEqual(choreography(cue, 2, "Flow"));
+      choreography({ startMs: 0, text: "Only light" }, 0, "Flow").treatment,
+    ).toBe("monument");
+    expect(choreography({ ...cue, endMs: 1200 }, 0, "Flow")).toMatchObject({
+      treatment: "horizon",
+      steady: true,
+    });
+    expect(splitPhrase("Hold the light, let it find us")).toEqual([
+      "Hold the light,",
+      "let it find us",
+    ]);
   });
   it("groups phrases without changing or timing words", () => {
     for (const text of [

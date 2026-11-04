@@ -146,3 +146,28 @@ the speakers. The Stop control disconnects all input resources. Audio persists
 between Lab and Display navigation but never automatically reconnects on reload.
 The WiiM connection still supplies metadata only; its music/lyrics are separate
 from test/file audio. See [sound-layer architecture and audio boundaries](docs/VISUAL_ENGINES.md).
+
+### Clean viewing and phone controls
+
+Display now fills the viewport and hides controls after inactivity; touch, mouse
+or keyboard brings them back. Clean viewing hides technical labels. In the lab,
+background tiles, favorites, energy, lyrics and brightness are up front; display
+preferences, lyric corrections, fine tuning and optional audio experiments have
+separate expandable sections. Song information can be brief, always visible or
+hidden; clock and progress are optional. Favorites also define the auto-rotation
+collection. Reset visual tuning preserves playback and room configuration.
+
+Lyric layout uses phrase length, punctuation and reading time. Repeated phrases
+retain a signature, fast passages settle down, and short statements become large
+single phrases. Per-song timing corrections supplement room calibration; wrong
+lyrics can be hidden for one song and restored. Breaks stay ambient.
+
+Ink, Architecture and Landscape expand the native library to nine backgrounds,
+with distinct GPU scenes and CSS fallbacks. All participate in album colors,
+song dynamics, rotation, reduced motion and existing rendering budgets.
+
+Paired phone controls share actual room settings across browsers. Enable them on
+the loopback owner in Settings, then use its URL and six-digit code on the phone.
+See [setup and pairing](docs/PHONE_CONTROLS.md) and the
+[implementation plan](docs/EXPERIENCE_UPGRADE_PLAN.md). Spotify Connect stays in
+charge of playback; no phone action starts audio capture.

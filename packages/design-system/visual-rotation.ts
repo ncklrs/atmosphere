@@ -27,16 +27,19 @@ export function advanceVisual(
   track: string,
   manual: AmbientVisual,
   enabled: boolean,
+  favorites: readonly AmbientVisual[] = [],
 ): VisualRotation | null {
   if (!track) return previous;
+  const collection = favorites.length
+    ? ambientVisuals.filter((v) => favorites.includes(v))
+    : ambientVisuals;
   const visual =
     !enabled || !previous
       ? manual
       : previous.track === track
         ? previous.visual
-        : ambientVisuals[
-            (ambientVisuals.indexOf(previous.visual) + 1) %
-              ambientVisuals.length
+        : collection[
+            (collection.indexOf(previous.visual) + 1) % collection.length
           ];
   return previous?.track === track && previous.visual === visual
     ? previous

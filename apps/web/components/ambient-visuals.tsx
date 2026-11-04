@@ -87,6 +87,7 @@ function AmbientVisuals({
         identity={identity}
         onReady={setGpu}
       />
+      <div className="ambient-special" />
       <div className="score-glow" />
       <div className="ambient-fields">
         <i className="ambient-field field-one" />

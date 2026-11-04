@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import RemoteControls, { RoomConnection } from "./room-controls";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MotionConfig, useReducedMotion } from "motion/react";
@@ -11,8 +12,14 @@ import {
   palettes,
   trackPaletteIndex,
 } from "../../../packages/design-system/index";
-import { visualPresets } from "../../../packages/design-system/visuals";
-import AmbientVisuals, { ambientVisuals } from "./ambient-visuals";
+import AmbientVisuals from "./ambient-visuals";
+import {
+  VisualPicker,
+  DisplayPreferences,
+  LyricCorrections,
+} from "./experience-controls";
+import { defaultPrism } from "../../../packages/design-system/visuals";
+import { defaults } from "../lib/settings";
 import LyricStage from "./lyric-stage";
 import { prepareVisualScore } from "../../../packages/motion-engine/visual-score";
 import { choreography } from "../../../packages/motion-engine/choreography";
@@ -21,7 +28,7 @@ import SoundLayerControls, { SoundQuickStart } from "./sound-layer-controls";
 const SoundLayerCanvas = dynamic(() => import("./sound-layer-canvas"), {
   ssr: false,
 });
-type View = "display" | "lab" | "settings" | "diagnostics";
+type View = "display" | "lab" | "settings" | "diagnostics" | "remote";
 type Model = ReturnType<typeof useAtmosphere>;
 const formatTime = (ms: number) =>
   `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`;
@@ -134,13 +141,35 @@ function DisplayScene({
   );
   const isSleep = ambient.scene === "SLEEP" && !ambient.musicAwake;
   useEffect(() => {
-    if (isSleep && !["idle", "error"].includes(audio.state.phase))
+    if (
+      model.ready &&
+      (isSleep || !settings.soundLayer.enabled) &&
+      !["idle", "error"].includes(audio.state.phase)
+    )
       audio.session.stop();
-  }, [isSleep, audio.session, audio.state.phase]);
+  }, [
+    isSleep,
+    model.ready,
+    settings.soundLayer.enabled,
+    audio.session,
+    audio.state.phase,
+  ]);
+  const [trackNotice, setTrackNotice] = useState(true);
+  useEffect(() => {
+    setTrackNotice(true);
+    const timer = setTimeout(() => setTrackNotice(false), 8000);
+    return () => clearTimeout(timer);
+  }, [p.trackKey]);
+  const calibration =
+    settings.calibrationMs + (settings.trackOffsets[p.trackKey] ?? 0);
   const active = p.state === "playing" || p.state === "paused";
   const cues =
-    settings.lyrics && lyrics?.trackKey === p.trackKey ? lyrics.cues : [];
-  const { index, word } = timeline(cues, position + settings.calibrationMs);
+    settings.lyrics &&
+    !settings.hiddenLyrics.includes(p.trackKey) &&
+    lyrics?.trackKey === p.trackKey
+      ? lyrics.cues
+      : [];
+  const { index, word } = timeline(cues, position + calibration);
   const current = cues[index];
   const hasLine = !!(active && current && current.text.trim());
   const ambientBreak = active && !hasLine;
@@ -161,13 +190,18 @@ function DisplayScene({
     ];
   const scoreCues = useMemo(
     () =>
-      prepareVisualScore(lyrics?.trackKey === p.trackKey ? lyrics.cues : []),
-    [lyrics, p.trackKey],
+      prepareVisualScore(
+        lyrics?.trackKey === p.trackKey &&
+          !settings.hiddenLyrics.includes(p.trackKey)
+          ? lyrics.cues
+          : [],
+      ),
+    [lyrics, p.trackKey, settings.hiddenLyrics],
   );
   const score = useMemo(
     () => ({
       cues: scoreCues,
-      positionMs: position + settings.calibrationMs,
+      positionMs: position + calibration,
       playing: p.state === "playing",
       amount: active ? settings.visualDynamics : 0,
       intensity: settings.intensity,
@@ -175,7 +209,7 @@ function DisplayScene({
     [
       scoreCues,
       position,
-      settings.calibrationMs,
+      calibration,
       p.state,
       settings.visualDynamics,
       active,
@@ -199,7 +233,16 @@ function DisplayScene({
   return (
     <div
       ref={container}
-      className={`display-scene layout-${chosen.toLowerCase()} ${isSleep ? "sleeping" : ""} ${settings.contrast ? "high-contrast" : ""}`}
+      className={`display-scene ${settings.cleanDisplay ? "clean-scene" : ""} layout-${chosen.toLowerCase()} ${isSleep ? "sleeping" : ""} ${settings.contrast ? "high-contrast" : ""}`}
+      data-track-mode={settings.trackInfo}
+      data-track-info={
+        settings.trackInfo === "always" ||
+        (settings.trackInfo === "brief" && trackNotice)
+          ? "visible"
+          : "hidden"
+      }
+      data-clock={settings.showClock ? "visible" : "hidden"}
+      data-progress={settings.showProgress ? "visible" : "hidden"}
       data-layout={chosen}
       data-scene={scene}
       data-state={p.state}
@@ -263,7 +306,7 @@ function DisplayScene({
               <LyricStage
                 cue={current}
                 index={index}
-                positionMs={position + settings.calibrationMs}
+                positionMs={position + calibration}
                 playing={p.state === "playing"}
                 intensity={settings.intensity}
                 reduced={!!reduced}
@@ -341,7 +384,11 @@ function DisplayScene({
       <div
         className="brightness-layer"
         aria-hidden="true"
-        style={{ opacity: isSleep ? 1 : 1 - ambient.intensity }}
+        style={{
+          opacity: isSleep
+            ? 1
+            : 1 - (ambient.intensity * settings.brightness) / 100,
+        }}
       />
       {isSleep && (
         <div className="sleep-note">
@@ -453,59 +500,11 @@ function Lab({ model }: { model: Model }) {
               ? `Now showing ${model.visual}. A new background for each song.`
               : "Choose a background, or rotate automatically when songs change."}
           </p>
-          <Choice
-            title="Ambient visuals"
-            options={ambientVisuals}
-            value={model.visual}
-            onChange={(value) =>
-              updateSettings({
-                ambientVisual: value as typeof settings.ambientVisual,
-                autoVisuals: false,
-              })
-            }
+          <VisualPicker
+            settings={settings}
+            visual={model.visual}
+            onChange={updateSettings}
           />
-          <p className="helper">{visualPresets[model.visual].description}</p>
-          {model.visual === "Prism" && (
-            <fieldset className="prism-controls">
-              <legend>Shape Prism</legend>
-              {(
-                [
-                  ["light", "Light intensity"],
-                  ["motion", "Motion speed"],
-                  ["facetSize", "Facet size"],
-                ] as const
-              ).map(([key, label]) => (
-                <label className="field" key={key}>
-                  {label}
-                  <span>
-                    {key === "motion" && settings.prism[key] === 0
-                      ? "Still"
-                      : `${settings.prism[key]}%`}
-                  </span>
-                  <input
-                    aria-label={`Prism ${label.toLowerCase()}`}
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={5}
-                    value={settings.prism[key]}
-                    onChange={(event) =>
-                      updateSettings({
-                        prism: {
-                          ...settings.prism,
-                          [key]: Number(event.target.value),
-                        },
-                      })
-                    }
-                  />
-                </label>
-              ))}
-              <p className="helper">
-                Larger facets feel quieter. Set motion to zero for a still
-                background.
-              </p>
-            </fieldset>
-          )}
           <label className="field song-dynamics-control">
             Song dynamics<span>{settings.visualDynamics}%</span>
             <input
@@ -526,21 +525,6 @@ function Lab({ model }: { model: Model }) {
             a fresh color sweep for each song. Uses lyrics and album colors; no
             microphone needed. Zero keeps the original ambient motion.
           </p>
-          <SoundLayerControls
-            settings={settings.soundLayer}
-            visual={model.visual}
-            onChange={(patch) =>
-              updateSettings({
-                soundLayer: { ...settings.soundLayer, ...patch },
-              })
-            }
-          />
-          <Choice
-            title="Composition"
-            options={["Auto", "Cinema", "Canvas", "Portrait", "Companion"]}
-            value={settings.composition}
-            onChange={(value) => updateSettings({ composition: value })}
-          />
           <Choice
             title="Motion intensity"
             options={["Whisper", "Flow", "Pulse"]}
@@ -564,37 +548,133 @@ function Lab({ model }: { model: Model }) {
               onChange={(e) => updateSettings({ lyrics: e.target.checked })}
             />
           </label>
-          <label className="switch-row">
-            High contrast
-            <input
-              type="checkbox"
-              checked={settings.contrast}
-              onChange={(e) => updateSettings({ contrast: e.target.checked })}
-            />
-          </label>
-          <div className="panel-rule" />
           <label className="field">
-            Lyric calibration{" "}
-            <span>
-              {settings.calibrationMs > 0 ? "+" : ""}
-              {settings.calibrationMs} ms
-            </span>
+            Brightness<span>{settings.brightness}%</span>
             <input
-              aria-label="Lyric calibration"
+              aria-label="Display brightness"
               type="range"
-              min={-5000}
-              max={5000}
-              step={50}
-              value={settings.calibrationMs}
+              min={0}
+              max={100}
+              value={settings.brightness}
               onChange={(e) =>
-                updateSettings({ calibrationMs: Number(e.target.value) })
+                updateSettings({ brightness: Number(e.target.value) })
               }
             />
           </label>
-          <p className="helper">
-            Positive values advance the lyrics. Adjust against your room’s audio
-            delay.
-          </p>
+          <DisplayPreferences settings={settings} onChange={updateSettings} />
+          <LyricCorrections
+            settings={settings}
+            trackKey={model.playback.trackKey}
+            hasLyrics={!!model.lyrics}
+            onChange={updateSettings}
+          />
+          <details className="experience-details">
+            <summary>Fine tuning</summary>{" "}
+            {model.visual === "Prism" && (
+              <fieldset className="prism-controls">
+                <legend>Shape Prism</legend>
+                {(
+                  [
+                    ["light", "Light intensity"],
+                    ["motion", "Motion speed"],
+                    ["facetSize", "Facet size"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label className="field" key={key}>
+                    {label}
+                    <span>
+                      {key === "motion" && settings.prism[key] === 0
+                        ? "Still"
+                        : `${settings.prism[key]}%`}
+                    </span>
+                    <input
+                      aria-label={`Prism ${label.toLowerCase()}`}
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={settings.prism[key]}
+                      onChange={(event) =>
+                        updateSettings({
+                          prism: {
+                            ...settings.prism,
+                            [key]: Number(event.target.value),
+                          },
+                        })
+                      }
+                    />
+                  </label>
+                ))}
+                <p className="helper">
+                  Larger facets feel quieter. Set motion to zero for a still
+                  background.
+                </p>
+              </fieldset>
+            )}
+            <Choice
+              title="Composition"
+              options={["Auto", "Cinema", "Canvas", "Portrait", "Companion"]}
+              value={settings.composition}
+              onChange={(value) => updateSettings({ composition: value })}
+            />
+            <label className="switch-row">
+              High contrast
+              <input
+                type="checkbox"
+                checked={settings.contrast}
+                onChange={(e) => updateSettings({ contrast: e.target.checked })}
+              />
+            </label>
+            <div className="panel-rule" />
+            <label className="field">
+              Lyric calibration{" "}
+              <span>
+                {settings.calibrationMs > 0 ? "+" : ""}
+                {settings.calibrationMs} ms
+              </span>
+              <input
+                aria-label="Lyric calibration"
+                type="range"
+                min={-5000}
+                max={5000}
+                step={50}
+                value={settings.calibrationMs}
+                onChange={(e) =>
+                  updateSettings({ calibrationMs: Number(e.target.value) })
+                }
+              />
+            </label>
+            <p className="helper">
+              Positive values advance the lyrics. Adjust against your room’s
+              audio delay.
+            </p>
+          </details>
+          <details className="experience-details audio-experiments">
+            <summary>Audio experiments</summary>{" "}
+            <SoundLayerControls
+              settings={settings.soundLayer}
+              visual={model.visual}
+              onChange={(patch) =>
+                updateSettings({
+                  soundLayer: { ...settings.soundLayer, ...patch },
+                })
+              }
+            />
+          </details>
+          <button
+            className="reset-visuals"
+            type="button"
+            onClick={() =>
+              updateSettings({
+                intensity: defaults.intensity,
+                visualDynamics: defaults.visualDynamics,
+                prism: defaultPrism,
+                soundLayer: defaults.soundLayer,
+              })
+            }
+          >
+            Reset visual tuning
+          </button>
           <Link className="text-link" href="/display">
             Enter display <span>↗</span>
           </Link>
@@ -624,11 +704,12 @@ function SettingsPage({ model }: { model: Model }) {
           </h1>
         </div>
         <p>
-          Local settings, saved on this display.
+          Saved locally. Shared with paired controllers.
           <br />
           No account. No cloud. Just your room.
         </p>
       </div>
+      <RoomConnection model={model} />
       <div className="settings-grid">
         <section className="settings-section">
           <h2>
@@ -940,6 +1021,32 @@ function Diagnostics({ model }: { model: Model }) {
 export default function Atmosphere({ view }: { view: View }) {
   const model = useAtmosphere();
   const [fullscreen, setFullscreen] = useState(false);
+  const [quiet, setQuiet] = useState(false);
+  useEffect(() => {
+    if (view !== "display" || !model.settings.cleanDisplay) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const wake = () => {
+      setQuiet(false);
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (
+          !(
+            document.activeElement?.matches(":focus-visible") &&
+            document.activeElement?.closest(".app-header,.display-dock")
+          )
+        )
+          setQuiet(true);
+      }, 4500);
+    };
+    for (const event of ["pointermove", "pointerdown", "keydown", "focusout"])
+      window.addEventListener(event, wake);
+    wake();
+    return () => {
+      clearTimeout(timer);
+      for (const event of ["pointermove", "pointerdown", "keydown", "focusout"])
+        window.removeEventListener(event, wake);
+    };
+  }, [view, model.settings.cleanDisplay]);
   useEffect(() => {
     const change = () => setFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", change);
@@ -947,11 +1054,16 @@ export default function Atmosphere({ view }: { view: View }) {
   }, []);
   return (
     <MotionConfig reducedMotion="user">
-      <div className={`app view-${view} ${fullscreen ? "is-fullscreen" : ""}`}>
+      <div
+        className={`app view-${view} ${fullscreen ? "is-fullscreen" : ""} ${model.settings.cleanDisplay ? "clean-display" : ""} ${quiet && model.settings.cleanDisplay ? "chrome-quiet" : "chrome-awake"}`}
+      >
         <a href="#content" className="skip-link">
           Skip to content
         </a>
-        <header className="app-header">
+        <header
+          className="app-header"
+          inert={view === "display" && quiet && model.settings.cleanDisplay}
+        >
           <Link
             href="/display"
             className="brand"
@@ -998,7 +1110,10 @@ export default function Atmosphere({ view }: { view: View }) {
           {view === "display" ? (
             <main className="display-main">
               <DisplayScene model={model} />
-              <div className="display-dock">
+              <div
+                className="display-dock"
+                inert={quiet && model.settings.cleanDisplay}
+              >
                 <span className="dock-label">
                   {model.settings.intensity.toUpperCase()} <span>/</span>{" "}
                   {model.playback.state === "paused" ? "PAUSED" : "LINE LYRICS"}
@@ -1033,6 +1148,8 @@ export default function Atmosphere({ view }: { view: View }) {
             </main>
           ) : view === "lab" ? (
             <Lab model={model} />
+          ) : view === "remote" ? (
+            <RemoteControls model={model} />
           ) : view === "settings" ? (
             <SettingsPage model={model} />
           ) : (

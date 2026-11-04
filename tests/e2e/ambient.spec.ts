@@ -1,3 +1,4 @@
+import { openLabPanels } from "./lab-panels";
 import { test, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { emptyPlayback } from "../../packages/playback-core/index";
@@ -25,6 +26,7 @@ for (const [width, height] of [
     page.on("pageerror", (error) => errors.push(error.message));
     await page.setViewportSize({ width, height });
     await page.goto("/lab");
+    await openLabPanels(page);
     await page.getByLabel("Show synchronized lyrics").uncheck();
     await mkdir("test-results/screenshots/ambient", { recursive: true });
     for (const preset of [
@@ -51,6 +53,7 @@ for (const [width, height] of [
       });
     }
     await page.reload();
+    await openLabPanels(page);
     await expect(
       page.getByRole("button", { name: "Voyage", exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
@@ -120,6 +123,7 @@ test("high contrast protects lyrics without dimming the ambient-only scene", asy
   page,
 }) => {
   await page.goto("/lab");
+  await openLabPanels(page);
   await page.getByLabel("High contrast").check();
   await expect(page.locator(".ambient-visuals")).toHaveCSS("opacity", "0.28");
   await page.getByLabel("Show synchronized lyrics").uncheck();

@@ -41,7 +41,7 @@ export default function LyricStage({
     ? cue.words.map((w) => w.text)
     : design.phrases[1].trim().split(/\s+/u).filter(Boolean);
   const tokenCount = leadTokens.length + focusTokens.length;
-  const treatment = wordTreatment(index);
+  const treatment = design.steady ? "reveal" : wordTreatment(design.signature);
   const nodes = useRef<(HTMLSpanElement | null)[]>([]);
   const wordFrame = useRef<WordFrame>({
     x: 0,
@@ -75,9 +75,9 @@ export default function LyricStage({
       frame.current,
       position - cue.startMs,
       (cue.endMs ?? cue.startMs + 8000) - cue.startMs,
-      intensity,
+      design.steady ? "Whisper" : intensity,
       reduced,
-      index,
+      design.signature,
     );
     leadX.set(values.leadX);
     leadY.set(values.leadY);
@@ -98,7 +98,7 @@ export default function LyricStage({
         i,
         tokenCount,
         treatment,
-        intensity,
+        design.steady ? "Whisper" : intensity,
         reduced,
         !!cue.words?.length,
       );
@@ -141,6 +141,7 @@ export default function LyricStage({
   return (
     <div
       className={`kinetic-stage treatment-${design.treatment} ${design.dense ? "kinetic-dense" : ""} ${!design.phrases[0] ? "single-phrase" : ""}`}
+      data-reading={design.steady ? "steady" : "expressive"}
       data-treatment={design.treatment}
       data-word-treatment={treatment}
       data-timing={cue.words?.length ? "word" : "line"}

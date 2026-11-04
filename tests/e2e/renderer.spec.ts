@@ -1,3 +1,4 @@
+import { openLabPanels } from "./lab-panels";
 import { test, expect, type Locator } from "@playwright/test";
 async function fingerprint(canvas: Locator) {
   return canvas.evaluate((el) => {
@@ -35,11 +36,12 @@ test.beforeEach(async ({ page }) => {
     ),
   );
 });
-test("six GPU presets render distinct fixed-time scenes within the pixel budget", async ({
+test("nine GPU presets render distinct fixed-time scenes within the pixel budget", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/lab");
+  await openLabPanels(page);
   const layer = page.locator(".ambient-visuals");
   await expect(layer).toHaveAttribute("data-renderer", "webgl");
   await expect(page.locator("canvas.generative-canvas")).toHaveCSS(
@@ -54,7 +56,17 @@ test("six GPU presets render distinct fixed-time scenes within the pixel budget"
     }));
   expect(dimensions.width * dimensions.height).toBeLessThan(523000);
   const captures: number[] = [];
-  for (const preset of ["Orbit", "Bloom", "Tide", "Nova", "Prism", "Voyage"]) {
+  for (const preset of [
+    "Orbit",
+    "Bloom",
+    "Tide",
+    "Nova",
+    "Prism",
+    "Voyage",
+    "Ink",
+    "Architecture",
+    "Landscape",
+  ]) {
     await page.getByRole("button", { name: preset, exact: true }).click();
     await expect(page.locator("canvas.generative-canvas")).toHaveAttribute(
       "data-active-visual",
@@ -85,6 +97,7 @@ test("unavailable WebGL retains the CSS scene", async ({ page }) => {
     } as typeof original;
   });
   await page.goto("/lab");
+  await openLabPanels(page);
   await expect(page.locator(".ambient-visuals")).toHaveAttribute(
     "data-renderer",
     "css",
@@ -95,6 +108,7 @@ test("GPU context loss reveals fallback and restoration resumes rendering", asyn
   page,
 }) => {
   await page.goto("/lab");
+  await openLabPanels(page);
   await expect(page.locator(".ambient-visuals")).toHaveAttribute(
     "data-renderer",
     "webgl",
@@ -120,6 +134,7 @@ test("the GPU field evolves over time without changing preset or restarting", as
   page,
 }) => {
   await page.goto("/lab");
+  await openLabPanels(page);
   const canvas = page.locator("canvas.generative-canvas");
   await expect(page.locator(".ambient-visuals")).toHaveAttribute(
     "data-renderer",

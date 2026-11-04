@@ -35,6 +35,24 @@ export const visualPresets = {
       "Travel through layered stars and clouds of interstellar color.",
     fallback: "Bloom",
   },
+  Ink: {
+    mode: 6,
+    description:
+      "Flowing pigment, marbled currents and soft pools of album color.",
+    fallback: "Bloom",
+  },
+  Architecture: {
+    mode: 7,
+    description:
+      "Raking light, deep geometric shadows and slowly moving apertures.",
+    fallback: "Tide",
+  },
+  Landscape: {
+    mode: 8,
+    description:
+      "Layered organic terrain, distant haze and an unhurried horizon.",
+    fallback: "Bloom",
+  },
 } as const;
 export type AmbientVisual = keyof typeof visualPresets;
 export const ambientVisuals = Object.keys(visualPresets) as AmbientVisual[];

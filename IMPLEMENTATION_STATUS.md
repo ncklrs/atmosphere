@@ -261,3 +261,49 @@ and actual GPU pixel changes with the independent ambient clock held fixed. Brow
 checks cover zero-strength persistence, rapid song swaps, enrichment without
 retriggering the sweep, reduced motion and art-free breaks. The isolated original
 demo was visually inspected. Real phone GPU performance remains unmeasured.
+
+## Complete room experience upgrade — 2026-11-04
+
+Implemented `docs/EXPERIENCE_UPGRADE_PLAN.md` in order. Clean Display fills the
+viewport, hides technical labels and fades controls after inactivity. Touch,
+pointer and keyboard restore them; visible keyboard focus is retained. Idle clock,
+progress and brief/always/hidden song information are configurable. The lab preview
+matches clean viewing. Everyday controls precede expandable display preferences,
+lyric corrections, fine tuning and audio experiments. Nine visual tiles, favorites,
+favorite-only rotation and safe visual reset replace the flat scene list.
+
+Lyrics select compositions from text length, punctuation and reading time.
+Repeated normalized phrases keep a content signature, short statements use a large
+single phrase, and fast/dense lines use steadier motion. Words retain actual LRC
+timing. Per-song offsets supplement room calibration, and mismatched lyrics can be
+hidden/restored for one track; gaps remain art-free. Hidden lyrics also stop that
+song's lyric-driven visual direction.
+
+Ink adds marbled pigment currents, Architecture uses moving apertures and geometric
+shadows, and Landscape creates layered terrain and haze. All nine GPU scenes are
+distinct and retain palette/song direction, frame/pixel budgets, reduced motion,
+sleep, context recovery and individual CSS fallbacks.
+
+A loopback gateway owns validated, optionally persisted shared presentation state.
+The owner explicitly enables room controls; paired controllers receive HttpOnly
+SameSite cookies. LAN routes cannot enable/revoke the room or reveal pairing codes.
+Cross-origin writes, oversized payloads and excessive pairing attempts are rejected.
+Settings persist atomically; gateway restarts require controller re-pairing, while
+owner clients recognize the new room session. Revocation invalidates controllers.
+Overlapping changes queue, interrupted writes retry, and older revisions are
+ignored. `/remote` provides actual cross-browser background, energy, brightness,
+favorites, display preference and lyric correction controls. This never sends WiiM
+transport commands or starts audio capture. Owner settings show local controller
+URLs and a six-digit code. See `docs/PHONE_CONTROLS.md` for the two-server setup.
+
+Validation passed 61 unit/integration tests. The full browser regression run passed
+59 of 60 cases; its one failure was an advanced-panel test racing SPA navigation.
+After adding a navigation wait, all 23 focused experience/renderer/audio/phone
+browser tests passed, covering that failure plus the final UI refinements. Earlier
+regression cases cover the remaining 37 browser flows. Two independent browser
+contexts verified pairing, unauthorized and cross-origin rejection, live display
+updates, interrupted-write retry, cookie reuse, per-song timing and revocation.
+Lint, typecheck and production builds pass. All three new scenes and the lab were
+visually inspected. Physical phone GPU performance is not established by those
+checks. Direct Spotify Connect, no required microphone and no required purchases
+remain the active constraints.

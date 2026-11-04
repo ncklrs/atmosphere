@@ -1,3 +1,4 @@
+import { openLabPanels } from "./lab-panels";
 import { test, expect } from "@playwright/test";
 import { demoPlayback } from "../../packages/fixtures/index";
 test("automatic backgrounds change per song, survive reload, and yield to manual selection", async ({
@@ -37,6 +38,7 @@ test("automatic backgrounds change per song, survive reload, and yield to manual
     }),
   );
   await page.goto("/lab");
+  await openLabPanels(page);
   const toggle = page.getByLabel("Auto-rotate visuals per song"),
     layer = page.locator(".ambient-visuals");
   await expect(page.locator(".now-playing h2")).toHaveText("First");
@@ -50,6 +52,7 @@ test("automatic backgrounds change per song, survive reload, and yield to manual
   revision++;
   await expect(layer).toHaveAttribute("data-visual", "Voyage");
   await page.reload();
+  await openLabPanels(page);
   await expect(toggle).toBeChecked();
   await expect(layer).toHaveAttribute("data-visual", "Voyage");
   await toggle.uncheck();
@@ -57,7 +60,7 @@ test("automatic backgrounds change per song, survive reload, and yield to manual
   await toggle.check();
   song = "Third";
   revision++;
-  await expect(layer).toHaveAttribute("data-visual", "Bloom");
+  await expect(layer).toHaveAttribute("data-visual", "Ink");
   await page.getByRole("button", { name: "Nova", exact: true }).click();
   await expect(toggle).not.toBeChecked();
   song = "Fourth";

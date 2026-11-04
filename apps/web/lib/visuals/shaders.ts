@@ -132,7 +132,7 @@ void main() {
       float beam=q.x*.7+q.y*.45+sin(t*.1+fi)*1.8+fi*.8;
       color+=mix(cool,spectrum,fi*.25)*exp(-abs(beam)*9.)*.35;
     }
-  } else {
+  } else if(mode<5.5) {
     q=turn(.3+sin(t*.03)*.12)*p;
     vec2 warp=vec2(fbm(q*2.+seed+t*.025),fbm(q*3.-t*.02));
     float cloud=fbm(q*3.+warp*3.);
@@ -154,6 +154,42 @@ void main() {
       color+=mix(accent,vec3(.85,.95,1.),h)*light*fade*(.7+z);
     }
   }
+  else if(mode<6.5) {
+    q=p*1.4;
+    vec2 current=vec2(fbm(q*2.+vec2(t*.035,seed)),fbm(q*2.+vec2(seed,-t*.04)));
+    float ink=fbm(q*2.2+current*3.8);
+    float folds=sin(ink*19.+q.y*2.);
+    float pigmentPool=smoothstep(.22,.78,ink);
+    color=mix(shadow*.4,mix(pigment,accent,smoothstep(.1,.85,ink)),pigmentPool*.9);
+    color+=accent*exp(-abs(folds)*12.)*.22*ink;
+    color*=.55+.45*fbm(q+current);
+  } else if(mode<7.5) {
+    q=turn(-.3)*p;
+    float aperture=.2*sin(t*.065+seed);
+    float plane=smoothstep(-.3,.45,q.x+q.y*.3);
+    color=mix(shadow*.35,pigment*.35,plane);
+    float beam=exp(-abs(q.x-aperture+q.y*.3)*5.);
+    float beam2=exp(-abs(q.x+.5-aperture+q.y*.3)*15.);
+    float slats=.3+.7*smoothstep(.12,.2,fract((q.y+q.x*.2)*3.+t*.008));
+    color+=mix(pigment,accent,.65)*(beam*.65+beam2*.3)*slats;
+    color*=.45+.55*smoothstep(-.38,-.34,q.y-q.x*.35);
+    color+=accent*.06*exp(-abs(q.y-q.x*.35+.35)*70.);
+  } else {
+    color=mix(shadow*.5,accent*.2,smoothstep(-.45,.6,p.y));
+    for(int i=0;i<5;i++) {
+      float layer=float(i),depth=layer/4.;
+      float hill=-.1-depth*.15+.12*sin(p.x*(1.2+layer*.32)+seed+layer*2.3+t*.012);
+      hill+=.065*noise(vec2(p.x*(2.+layer*.5)+t*.012,layer*7.+seed));
+      float land=1.-smoothstep(hill-.012,hill+.012,p.y);
+      vec3 ground=mix(mix(accent,pigment,.65),shadow,depth*.85);
+      ground*=.75-depth*.35;
+      color=mix(color,ground,land);
+      color+=mix(accent,pigment,depth)*exp(-abs(p.y-hill)*20.)*.055;
+    }
+    float haze=exp(-abs(p.y+.1)*4.);
+    color+=accent*haze*.08;
+  }
+  if(mode<5.5) {
   for(int i=0;i<2;i++) {
     float layer=float(i);
     vec2 starUV=p*(22.+layer*19.)+vec2(t*.035*(layer+1.),t*.018)+seed*13.;
@@ -163,13 +199,14 @@ void main() {
     float twinkle=.65+.35*sin(t*(.4+h)+h*90.);
     color+=mix(accent,vec3(.9,.96,1.),.6)*star*twinkle*(1.+layer);
   }
+  }
   vec2 focal=p-direction.xy;
   float radius=length(focal);
   float halo=exp(-radius*radius*2.4);
   float flow=sin(focal.x*3.5+focal.y*2.+direction.z*6.28+time*.12);
   float filaments=pow(.5+.5*sin(radius*18.-score.x*4.+flow*2.),6.);
   color+=mix(pigment,accent,.65)*halo*(swell*.85+score.z*.24);
-  color+=mix(accent,pigment,direction.z)*filaments*exp(-radius*2.)*swell*.48;
+  color+=mix(accent,pigment,direction.z)*filaments*exp(-radius*2.)*swell*.48*step(mode,5.5);
   float ribbon=exp(-abs(focal.y+.28*sin(focal.x*3.+direction.z*6.28+time*.09))*13.);
   color+=mix(accent,pigment,.4)*ribbon*score.z*.7;
   color+=mix(shadow,pigment,.55)*score.w*(.12+.32*halo);

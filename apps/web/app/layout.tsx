@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import "../components/experience.css";
 import "../components/lyric-stage.css";
 import "../components/ambient-visuals.css";
 import "../components/sound-layer.css";

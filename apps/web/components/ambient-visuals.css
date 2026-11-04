@@ -701,3 +701,61 @@
 .preset-prism[data-still="true"] .ambient-nebula {
   scale: 1 !important;
 }
+.ambient-special {
+  position: absolute;
+  inset: -10%;
+}
+.preset-ink[data-renderer="css"] .ambient-special {
+  background: repeating-radial-gradient(
+    ellipse at 20% 70%,
+    var(--album-2) 0 9%,
+    var(--album-1) 12%,
+    var(--accent) 14%,
+    var(--album-2) 19%
+  );
+  animation: nebula-unfold 36s ease-in-out infinite alternate;
+  opacity: 0.65;
+}
+.preset-architecture[data-renderer="css"] .ambient-special {
+  background: repeating-linear-gradient(
+    115deg,
+    var(--album-2) 0 14%,
+    var(--accent) 15% 18%,
+    var(--album-1) 20% 30%,
+    var(--album-2) 33% 46%
+  );
+  animation: architecture-light 34s ease-in-out infinite alternate;
+}
+.preset-landscape[data-renderer="css"] .ambient-special {
+  background:
+    radial-gradient(ellipse at 15% 150%, var(--album-2) 52%, transparent 53%),
+    radial-gradient(ellipse at 90% 135%, var(--album-1) 58%, transparent 59%),
+    linear-gradient(var(--album-2), var(--accent));
+  animation: landscape-drift 50s ease-in-out infinite alternate;
+}
+.preset-ink[data-renderer="css"] .ambient-dust,
+.preset-architecture[data-renderer="css"] .ambient-dust,
+.preset-landscape[data-renderer="css"] .ambient-dust {
+  display: none;
+}
+.preset-architecture[data-renderer="css"] .ambient-nebula,
+.preset-landscape[data-renderer="css"] .ambient-nebula,
+.preset-architecture[data-renderer="css"] .ambient-contours {
+  display: none;
+}
+@keyframes architecture-light {
+  from {
+    transform: translateX(-6%) scale(1.05);
+  }
+  to {
+    transform: translateX(6%) scale(1.15);
+  }
+}
+@keyframes landscape-drift {
+  from {
+    transform: translateX(-2%) scale(1.04);
+  }
+  to {
+    transform: translateX(2%) scale(1.08);
+  }
+}

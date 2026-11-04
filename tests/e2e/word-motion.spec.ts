@@ -11,18 +11,18 @@ test.beforeEach(async ({ page }) => {
     ),
   );
 });
-test("five word entrances differ, freeze on pause and reproduce after a seek", async ({
+test("content-based word entrances vary, freeze on pause and reproduce after a seek", async ({
   page,
 }) => {
   await page.goto("/display");
   await page.getByRole("button", { name: "Pause demo" }).click();
   const seek = page.getByRole("slider", { name: "Demo playback position" });
   for (const [i, treatment] of [
-    "rise",
+    "unfold",
+    "reveal",
+    "slide",
     "slide",
     "unfold",
-    "scatter",
-    "reveal",
   ].entries()) {
     await seek.fill(String(3200 + i * 11000));
     await expect(page.locator(".kinetic-stage")).toHaveAttribute(
@@ -74,15 +74,13 @@ test("reduced motion shows every word without entrance transforms", async ({
     "transform",
     "none",
   );
-  const words = await page
-    .locator(".kinetic-word")
-    .evaluateAll((nodes) =>
-      nodes.map((el) => ({
-        transform: getComputedStyle(el).transform,
-        opacity: getComputedStyle(el).opacity,
-        clip: getComputedStyle(el).clipPath,
-      })),
-    );
+  const words = await page.locator(".kinetic-word").evaluateAll((nodes) =>
+    nodes.map((el) => ({
+      transform: getComputedStyle(el).transform,
+      opacity: getComputedStyle(el).opacity,
+      clip: getComputedStyle(el).clipPath,
+    })),
+  );
   expect(words.length).toBeGreaterThan(3);
   for (const word of words)
     expect(word).toEqual({ transform: "none", opacity: "1", clip: "none" });

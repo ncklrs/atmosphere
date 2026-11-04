@@ -26,6 +26,9 @@ const pairedStyles: Record<AmbientVisual, Exclude<SoundStyle, "Auto">> = {
   Nova: "Stardust",
   Prism: "Halo",
   Voyage: "Stardust",
+  Ink: "Ribbons",
+  Architecture: "Halo",
+  Landscape: "Ribbons",
 };
 export function resolveSoundStyle(style: SoundStyle, visual: AmbientVisual) {
   return style === "Auto" ? pairedStyles[visual] : style;

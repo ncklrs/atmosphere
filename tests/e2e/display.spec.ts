@@ -1,3 +1,4 @@
+import { openLabPanels } from "./lab-panels";
 import { test, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { demoPlayback } from "../../packages/fixtures/index";
@@ -86,6 +87,7 @@ test("demo seeks, skips and handles lyric gaps", async ({ page }) => {
 test("lab settings persist and reduced motion is honored", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page.getByRole("button", { name: "Pulse", exact: true }).click();
   await page.getByLabel("Show synchronized lyrics").uncheck();
   await expect(page.locator(".ambient-visuals")).toHaveAttribute(
@@ -99,6 +101,7 @@ test("lab settings persist and reduced motion is honored", async ({ page }) => {
     "Portrait",
   );
   await page.reload();
+  await openLabPanels(page);
   await expect(
     page.getByRole("button", { name: "Pulse", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");

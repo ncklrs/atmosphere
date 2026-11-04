@@ -37,9 +37,17 @@ export function useSongVisual(
         track,
         settings.ambientVisual,
         settings.autoVisuals,
+        settings.favorites,
       ),
     );
-  }, [ready, loaded, track, settings.ambientVisual, settings.autoVisuals]);
+  }, [
+    ready,
+    loaded,
+    track,
+    settings.ambientVisual,
+    settings.autoVisuals,
+    settings.favorites,
+  ]);
   useEffect(() => {
     if (!loaded || !rotation) return;
     try {

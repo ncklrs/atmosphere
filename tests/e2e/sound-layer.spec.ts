@@ -1,3 +1,4 @@
+import { openLabPanels } from "./lab-panels";
 import { test, expect, type Locator } from "@playwright/test";
 import { demoSample } from "../../apps/web/lib/audio/demo";
 async function fingerprint(canvas: Locator) {
@@ -53,6 +54,7 @@ test("three layered treatments render over the native engine without automatical
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/lab");
+  await openLabPanels(page);
   await expect(
     page.getByRole("button", { name: "Milkdrop", exact: true }),
   ).toHaveCount(0);
@@ -86,6 +88,7 @@ test("three layered treatments render over the native engine without automatical
   await page.getByRole("slider", { name: "Sound layer size" }).fill("75");
   await page.getByRole("button", { name: "Lower", exact: true }).click();
   await page.reload();
+  await openLabPanels(page);
   await expect(
     page.getByRole("button", { name: "Stardust", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
@@ -104,6 +107,7 @@ test("real synthesized audio drives Waviz FFT, survives navigation, and closes w
   page,
 }) => {
   await page.goto("/lab");
+  await openLabPanels(page);
   await page.getByRole("slider", { name: "Visualizer audio volume" }).fill("0");
   await page
     .getByRole("button", { name: "Try with test audio", exact: true })
@@ -206,6 +210,7 @@ test("local audio files play, pause, resume, and disconnect without uploading", 
       external.push(request.url());
   });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page.getByRole("slider", { name: "Visualizer audio volume" }).fill("0");
   await page.getByLabel("Choose local audio file").setInputFiles({
     name: "original-test.wav",
@@ -238,9 +243,7 @@ test("local audio files play, pause, resume, and disconnect without uploading", 
   await page
     .getByRole("button", { name: "Disconnect audio", exact: true })
     .click();
-  await expect(page.locator(".audio-state")).toContainText(
-    "no audio connected",
-  );
+  await expect(page.locator(".audio-state")).toContainText("no audio input");
   expect(external).toEqual([]);
 });
 test("microphone denial is recoverable and a late permission result is immediately stopped after cancellation", async ({
@@ -254,6 +257,7 @@ test("microphone denial is recoverable and a late permission result is immediate
     });
   });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page
     .getByRole("button", { name: "Use microphone", exact: true })
     .click();
@@ -305,6 +309,7 @@ test("reduced motion stays static, disabling the layer stops audio, and sleep te
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/lab");
+  await openLabPanels(page);
   const canvas = page.locator("canvas.sound-layer");
   await expect(canvas).toHaveAttribute("data-input", "reduced");
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
@@ -337,6 +342,7 @@ test("the layer preserves lyric contrast and art-free breaks, with usable phone 
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page.getByLabel("Show synchronized lyrics").check();
   await page.getByRole("button", { name: "Pause demo", exact: true }).click();
   await page
@@ -387,6 +393,7 @@ test("an accepted test microphone stream is disconnected and its track ends on S
     });
   });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page
     .getByRole("button", { name: "Use microphone", exact: true })
     .click();
@@ -429,6 +436,7 @@ test("unavailable Web Audio leaves an actionable error and keeps the original ba
     });
   });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page
     .getByRole("button", { name: "Play test audio", exact: true })
     .click();
@@ -516,6 +524,7 @@ test("wired input requires a specific selection, analyzes only that input, and r
 }) => {
   await mockWiredInput(page);
   await page.goto("/lab");
+  await openLabPanels(page);
   await page.getByText("Choose another audio input", { exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Connect wired input", exact: true }),
@@ -575,6 +584,7 @@ test("wired input requires a specific selection, analyzes only that input, and r
     "Wired input → visuals",
   );
   await page.getByRole("link", { name: "Visual lab", exact: true }).click();
+  await openLabPanels(page, true);
   await page.getByText("Choose another audio input", { exact: true }).click();
   await expect(page.getByLabel("Wired audio input")).toHaveValue("usb-line");
   await page.evaluate(() => {
@@ -601,6 +611,7 @@ test("a wired request never falls back to a different microphone returned by the
 }) => {
   await mockWiredInput(page, true);
   await page.goto("/lab");
+  await openLabPanels(page);
   await page.getByText("Choose another audio input", { exact: true }).click();
   await page.getByLabel("Wired audio input").selectOption("usb-line");
   await page
@@ -647,6 +658,7 @@ test("unplugged wired devices produce an error without starting the default inpu
     }),
   );
   await page.goto("/lab");
+  await openLabPanels(page);
   await page.getByText("Choose another audio input", { exact: true }).click();
   await page.getByLabel("Wired audio input").selectOption("usb-line");
   await page
@@ -705,6 +717,7 @@ test("computer audio uses real FFT without microphone capture and releases video
     });
   });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page
     .getByRole("button", { name: "Use computer audio", exact: true })
     .click();
@@ -786,6 +799,7 @@ test("a screen shared without audio gives clear guidance and releases its video"
     });
   });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page
     .getByRole("button", { name: "Use computer audio", exact: true })
     .click();
@@ -819,6 +833,7 @@ test("cancelled computer sharing stays disconnected without microphone fallback"
     });
   });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page
     .getByRole("button", { name: "Use computer audio", exact: true })
     .click();
@@ -849,6 +864,7 @@ test("a late computer sharing grant is stopped after cancellation", async ({
     });
   });
   await page.goto("/lab");
+  await openLabPanels(page);
   await page
     .getByRole("button", { name: "Use computer audio", exact: true })
     .click();

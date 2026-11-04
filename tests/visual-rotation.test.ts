@@ -24,6 +24,18 @@ describe("per-song visual rotation", () => {
       "Bloom",
     );
   });
+  it("rotates only through favorites when a collection is selected", () => {
+    const favorites = ["Ink", "Architecture"] as const;
+    const first = advanceVisual(null, "one", "Ink", true, favorites)!;
+    const second = advanceVisual(first, "two", "Ink", true, favorites)!;
+    expect(second.visual).toBe("Architecture");
+    expect(advanceVisual(second, "three", "Ink", true, favorites)?.visual).toBe(
+      "Ink",
+    );
+    expect(
+      advanceVisual(second, "four", "Nova", false, favorites)?.visual,
+    ).toBe("Nova");
+  });
   it("ignores metadata enrichment and rejects invalid persisted state", () => {
     const p = demoPlayback(0, 0);
     expect(visualTrackIdentity(p)).toBe(

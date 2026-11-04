@@ -7,7 +7,7 @@ export default defineConfig({
   use: { baseURL: "http://127.0.0.1:3212", trace: "retain-on-failure" },
   webServer: {
     command:
-      "WIIM_HOST= LYRICS_PROVIDER= GATEWAY_PORT=8788 PORT=3212 WEB_ORIGIN=http://127.0.0.1:3212 pnpm start",
+      "ROOM_OWNER=1 WIIM_HOST= LYRICS_PROVIDER= GATEWAY_PORT=8788 PORT=3212 WEB_ORIGIN=http://127.0.0.1:3212 pnpm start",
     url: "http://127.0.0.1:3212",
     reuseExistingServer: false,
     timeout: 60000,

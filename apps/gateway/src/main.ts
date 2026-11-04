@@ -4,6 +4,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65535)
   throw new Error("Invalid GATEWAY_PORT");
 const gateway = await startGateway({
   port,
+  roomFile: process.env.ROOM_STATE_FILE,
   origin: process.env.WEB_ORIGIN ?? "http://127.0.0.1:3000",
   lyrics: process.env.LYRICS_PROVIDER === "lrclib",
   wiim: process.env.WIIM_HOST

@@ -1,3 +1,4 @@
+import { createRoom } from "./room";
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
@@ -25,6 +26,7 @@ import {
 } from "../../../packages/lyrics/index";
 import { SoftwareBrightness } from "../../../packages/circadian/brightness";
 export interface GatewayOptions {
+  roomFile?: string;
   port?: number;
   wiim?: ProbeOptions;
   lyrics?: boolean;
@@ -71,6 +73,7 @@ export async function startGateway(options: GatewayOptions = {}) {
     errors,
     lastError,
   });
+  const room = await createRoom(options.roomFile);
   const server = createServer((request, response) => {
     const host = request.headers.host?.split(":")[0];
     if (!["127.0.0.1", "localhost"].includes(host ?? "")) {
@@ -87,6 +90,11 @@ export async function startGateway(options: GatewayOptions = {}) {
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("Content-Type", "application/json");
     response.setHeader("X-Content-Type-Options", "nosniff");
+    const roomPath = request.url?.split("?")[0] ?? "";
+    if (roomPath.startsWith("/room/")) {
+      void room.handle(request, response, roomPath);
+      return;
+    }
     if (request.method !== "GET") {
       response.writeHead(405);
       response.end(JSON.stringify({ error: "read-only" }));
