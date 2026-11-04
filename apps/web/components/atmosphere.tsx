@@ -178,6 +178,8 @@ function DisplayScene({
     >
       <div className="palette-backdrop" />
       <AmbientVisuals
+        palette={palette}
+        identity={p.trackKey || "ambient"}
         visual={settings.ambientVisual}
         intensity={settings.intensity}
         focus={hasLine ? "lyrics" : "ambient"}
@@ -393,10 +395,10 @@ function Lab({ model }: { model: Model }) {
           />
           <p className="helper">
             {settings.ambientVisual === "Bloom"
-              ? "Luminous clouds and flowing ribbons of color."
+              ? "Evolving aurora ribbons and clouds of colored light."
               : settings.ambientVisual === "Tide"
-                ? "Layered currents and shifting contours."
-                : "A luminous nebula, a ringed world, and drifting stars."}
+                ? "Liquid terrain with flowing luminous contours."
+                : "A flowing galactic vortex, luminous dust, and deep space."}
           </p>
           <Choice
             title="Composition"

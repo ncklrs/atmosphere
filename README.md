@@ -105,3 +105,7 @@ Read [the comprehensive implementation plan](IMPLEMENTATION_PLAN.md) and [the ev
 Font binaries are self-hosted using `next/font/local`; their OFL license texts are included in `apps/web/fonts`. The synthetic demo material is original to this project. Hardware descriptions/prices in the supplied brief are unverified reference material, not current purchasing advice.
 
 Live browsers read same-origin `/api/gateway/state` and `/api/gateway/capabilities`; Next forwards only those fixed observations to the loopback gateway. This also works from a trusted same-WiFi phone using the laptop’s web address. Gateway session identifiers let the UI recover immediately after a gateway restart, even when revision counters reset. Track metadata updates independently of lyric and artwork loading.
+
+### Generative renderer
+
+The primary ambient engine is a dependency-free WebGL fragment shader. Orbit produces a galactic vortex with luminous filaments and stars; Bloom produces domain-warped aurora ribbons; Tide produces evolving liquid contours. Album colors interpolate through the renderer, and track identity seeds the field. The clock continues through lyric breaks without React frame renders. Hardware rendering targets roughly 30 fps with a 520k-pixel ceiling; detected software renderers use a 90k-pixel/12 fps budget. Sustained slow frames reduce resolution further. Hidden pages stop drawing, reduced motion uses a static field, and sleep removes the canvas. Context loss or unavailable WebGL reveals the CSS fallback. These are procedural visuals, not beat detection.

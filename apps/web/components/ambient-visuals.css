@@ -607,3 +607,19 @@
     left: -22%;
   }
 }
+
+.generative-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1.8s ease;
+}
+.ambient-visuals[data-renderer="webgl"] > .generative-canvas {
+  opacity: 1;
+}
+.ambient-visuals[data-renderer="webgl"]
+  > :not(.generative-canvas):not(.ambient-vignette) {
+  visibility: hidden;
+}

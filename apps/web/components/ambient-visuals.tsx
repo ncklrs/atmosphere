@@ -1,4 +1,5 @@
-import { memo } from "react";
+import { memo, useState } from "react";
+import GenerativeCanvas from "./generative-canvas";
 import type { Intensity } from "../../../packages/motion-engine/index";
 export type AmbientVisual = "Bloom" | "Tide" | "Orbit";
 export const ambientVisuals: AmbientVisual[] = ["Bloom", "Tide", "Orbit"];
@@ -24,21 +25,34 @@ function AmbientVisuals({
   intensity,
   focus,
   sleep,
+  palette,
+  identity,
 }: {
   visual: AmbientVisual;
   intensity: Intensity;
   focus: "lyrics" | "ambient";
   sleep: boolean;
+  palette: readonly string[];
+  identity: string;
 }) {
+  const [gpu, setGpu] = useState(false);
   if (sleep) return null;
   return (
     <div
       className={`ambient-visuals visual-${visual.toLowerCase()}`}
+      data-renderer={gpu ? "webgl" : "css"}
       data-visual={visual}
       data-intensity={intensity}
       data-focus={focus}
       aria-hidden="true"
     >
+      <GenerativeCanvas
+        visual={visual}
+        intensity={intensity}
+        palette={palette}
+        identity={identity}
+        onReady={setGpu}
+      />
       <div className="ambient-fields">
         <i className="ambient-field field-one" />
         <i className="ambient-field field-two" />
