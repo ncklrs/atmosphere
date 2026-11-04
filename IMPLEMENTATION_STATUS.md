@@ -28,7 +28,7 @@ Development host: macOS, Node.js 23.7.0, pnpm 9.12.0, local Playwright Chromium.
 - Desktop, portrait, compact and lab captures have been visually inspected. The lab adjusts the preview's aspect ratio for forced Portrait/Canvas compositions.
 - CodeRabbit CLI is installed but signed out; no external CodeRabbit review was performed. Local lint, type checking, tests and source review remain the evidence for this delivery.
 
-Final local results: **49 unit/integration tests passed across 9 files; 38 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
+Final local results: **53 unit/integration tests passed across 10 files; 46 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
 
 ## Unverified or deferred
 
@@ -108,3 +108,44 @@ Fixed an intermittent lyric-delay cause: network exceptions and service errors w
 Added the opt-in Auto per song setting to the visual lab. Rotation cycles through all six presets without immediate repeats, using source/title/artist identity so duration, album and artwork enrichment do not spuriously advance the scene. Empty or incomplete metadata holds the previous state. Local rotation state preserves the current track/background through reloads and route changes. Disabling auto holds the current preset, and clicking a preset switches to manual mode. The active preset remains visible in the chooser, with Prism controls shown whenever it is active.
 
 Unit tests cover full-library cycling, stable identity, missing metadata and persisted state validation. Browser checks verify track advancement, stability during seek-like position updates, reload persistence, disabling/re-enabling auto, and manual pinning across later tracks. Existing settings migrate with auto disabled.
+
+## Curated Butterchurn engine — 2026-11-04
+
+Added optional Milkdrop rendering alongside the original six Ambient backgrounds.
+Pinned Butterchurn 2.6.7 and butterchurn-presets 2.4.7; the engine and twelve
+allowlisted preset files load only when selected, with individual preset chunks.
+Calm, Balanced, and Intense each contain four scenes, with full creator credits
+and locally served MIT license notices. Jelly space is the initial Milkdrop scene.
+
+Independent brightness, animation speed (including still), pattern energy and
+preset blend controls persist locally. Auto per song rotates within the chosen
+collection; manual selection disables it, and turning it off pins the active
+preset. Switching engines preserves their current selections. Existing stored
+source, calibration, native visuals, lyrics, contrast, and scheduling preferences
+remain compatible. The live lab was switched to Milkdrop / Calm / Jelly space
+with its existing auto-per-song setting retained.
+
+The WiiM supplies metadata rather than audio samples. The engine therefore uses
+a continuous, silent mathematical animation signal, creates no AudioContext or
+audio capture connection, and explicitly labels that mode in the lab. Ambient
+adaptation disables volume gating so presets cannot fade away while waiting for
+musical volume peaks. Milkdrop retains its own preset colors; the native engine
+still uses album colors. See `docs/VISUAL_ENGINES.md` for the exact boundaries.
+
+The renderer caps pixel count and frame rate, adapts to slow/software rendering,
+stops on hidden pages, unmounts in sleep, and uses the native ambient fallback
+for reduced motion or unavailable WebGL2. Context loss falls back and restoration
+recreates the engine. Teardown releases the owned WebGL2 context. Async generation
+fences discard obsolete preset loads and initialization attempts. Lyrics remain
+a separate foreground layer, including contrast dimming and art-free breaks.
+
+Validation: lint, typecheck, production build, **53 unit/integration tests and 46
+browser tests passed (99 total)**. New checks cover settings migration/bounds,
+allowlisted assets, collection rotation, deterministic ambient input, actual
+nonblack and distinct WebGL2 output from all twelve presets, persisted controls,
+zero-speed freeze/resume, rapid selection, context loss/restoration, unsupported
+WebGL2, reduced motion, sleep, lyric gaps/contrast, and a 390×844 phone viewport.
+Candidate scenes and final output were visually inspected; the updated live lab
+was verified through its UI. Real-phone GPU performance and real audio reactivity
+are not established by the browser tests. No external CodeRabbit review ran
+because its CLI remains signed out; local source review and checks were completed.

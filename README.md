@@ -119,3 +119,16 @@ Lyric lines cycle through five word-level entrances: rise, slide, unfold, scatte
 Prism has independent Light intensity, Motion speed and Facet size sliders in the lab. Defaults are deliberately calmer (55% light, 30% speed, 70% facet size); zero motion freezes its field while lyric playback continues. Controls persist across reloads and preset changes. Temporary LRCLIB/network failures retry after 3 seconds with backoff capped at 15 seconds, while confirmed misses remain cached for a minute.
 
 Enable **Auto per song** in the visual lab to cycle through all six backgrounds on track changes. Rotation stays fixed during lyric updates, pauses, seeks, missing lyrics and duration/artwork enrichment. The current background survives reloads and navigation. Turning the setting off holds the current background; choosing a preset manually also turns auto off. Existing settings keep manual mode until you opt in.
+
+### Optional Milkdrop engine
+
+Choose **Milkdrop** under **Visual engine** in the lab for twelve curated
+Butterchurn scenes, grouped into Calm, Balanced, and Intense collections. Brightness,
+animation speed (including still), pattern energy, and preset-blend controls persist
+locally. Auto per song rotates within the chosen collection. The original six
+backgrounds remain under **Ambient**, with their existing controls and album colors.
+
+Milkdrop currently uses a silent ambient animation signal, not WiiM audio analysis.
+It creates no microphone/audio capture connection. Presets use their own colors.
+Unsupported WebGL2 and reduced motion retain the existing ambient fallback; sleep
+unmounts both engines. See [visual engine details and licenses](docs/VISUAL_ENGINES.md).
