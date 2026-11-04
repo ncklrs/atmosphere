@@ -8,8 +8,14 @@ import {
 } from "../../../packages/design-system/sound-layer";
 import type { AmbientVisual } from "../../../packages/design-system/visuals";
 import type { AudioSession } from "../lib/audio/session";
+import {
+  emptyVisualFrame,
+  writeVisualScore,
+  type VisualScoreSource,
+} from "../../../packages/motion-engine/visual-score";
 import { haloSpectrum } from "../lib/visuals/spectrum";
 interface Props {
+  score: VisualScoreSource;
   controls: SoundLayerSettings;
   visual: AmbientVisual;
   palette: readonly string[];
@@ -35,6 +41,7 @@ function SoundLayerCanvas(props: Props) {
       time = 0,
       frames = 0;
     let energy = 0;
+    const scoreFrame = emptyVisualFrame();
     let painter: Visualizer | null = null,
       idleAnalyzer: AudioAnalyzer | null = null;
     let previousStyle = "";
@@ -73,8 +80,16 @@ function SoundLayerCanvas(props: Props) {
       const {
         x,
         y,
-        radius: baseRadius,
+        radius: restingRadius,
       } = soundGeometry(w, h, placement, p.lyrics);
+      writeVisualScore(
+        scoreFrame,
+        p.score,
+        p.score.positionMs,
+        reduced.matches,
+      );
+      const lyricPresence = scoreFrame.phrase + scoreFrame.drive * 0.4;
+      const baseRadius = restingRadius * (1 + lyricPresence * 0.13);
       const gain = 0.5 + p.controls.sensitivity / 25;
       const waveform = reactive
         ? p.session.analyzer?.getTimeDomainData()

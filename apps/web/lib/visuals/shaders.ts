@@ -14,6 +14,10 @@ uniform float prismLight;
 uniform float prismScale;
 uniform vec3 accent;
 uniform vec3 pigment;
+uniform vec3 shadow;
+uniform vec4 score;
+uniform vec3 direction;
+uniform vec3 song;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7))) * 43758.5453); }
 float noise(vec2 p) {
   vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
@@ -29,9 +33,14 @@ void main() {
   vec2 uv=gl_FragCoord.xy/resolution;
   vec2 p=(gl_FragCoord.xy-.5*resolution)/min(resolution.x,resolution.y);
   float t=mode>3.5 && mode<4.5 ? prismTime : time;
+  float swell=score.x+score.y*.6;
+  float expansion=score.z*.09+score.w*.16;
+  p=turn(score.z*.065*sin(direction.z*6.28))*p/(1.+expansion+swell*.26);
+  p += direction.xy*score.z*.22;
+  p += swell*.09*vec2(sin(p.y*4.+direction.z*6.28),cos(p.x*3.));
   p += .08*vec2(sin(t*.12+seed),cos(t*.09+seed));
-  vec3 base=mix(vec3(.025,.016,.065),pigment*.14,.65);
-  vec3 cool=mix(accent,vec3(.15,.48,.8),.3);
+  vec3 base=mix(shadow*.09,pigment*.15,.6);
+  vec3 cool=mix(accent,mix(pigment,accent,.7),.1);
   vec3 warm=mix(accent,pigment,.45);
   vec3 color=base;
   vec2 q=p;
@@ -154,9 +163,22 @@ void main() {
     float twinkle=.65+.35*sin(t*(.4+h)+h*90.);
     color+=mix(accent,vec3(.9,.96,1.),.6)*star*twinkle*(1.+layer);
   }
+  vec2 focal=p-direction.xy;
+  float radius=length(focal);
+  float halo=exp(-radius*radius*2.4);
+  float flow=sin(focal.x*3.5+focal.y*2.+direction.z*6.28+time*.12);
+  float filaments=pow(.5+.5*sin(radius*18.-score.x*4.+flow*2.),6.);
+  color+=mix(pigment,accent,.65)*halo*(swell*.85+score.z*.24);
+  color+=mix(accent,pigment,direction.z)*filaments*exp(-radius*2.)*swell*.48;
+  float ribbon=exp(-abs(focal.y+.28*sin(focal.x*3.+direction.z*6.28+time*.09))*13.);
+  color+=mix(accent,pigment,.4)*ribbon*score.z*.7;
+  color+=mix(shadow,pigment,.55)*score.w*(.12+.32*halo);
+  float sweep=exp(-pow((uv.x+uv.y*.32-song.x*1.85+.25)*3.2,2.));
+  color+=mix(pigment,accent,uv.y)*sweep*song.y*.8;
+  color+=shadow*song.y*.16;
   float vignette=1.-.45*dot(uv-.5,uv-.5);
   color=vec3(1.)-exp(-max(color,vec3(0.))*1.35);
   float light=mode>3.5 && mode<4.5 ? prismLight : 1.;
-  gl_FragColor=vec4(color*vignette*reveal*light,1.);
+  gl_FragColor=vec4(color*vignette*(.32+.68*reveal)*light,1.);
 }
 `;

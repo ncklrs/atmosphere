@@ -14,6 +14,7 @@ import {
 import { visualPresets } from "../../../packages/design-system/visuals";
 import AmbientVisuals, { ambientVisuals } from "./ambient-visuals";
 import LyricStage from "./lyric-stage";
+import { prepareVisualScore } from "../../../packages/motion-engine/visual-score";
 import { choreography } from "../../../packages/motion-engine/choreography";
 import { useAudioSession } from "./audio-input-provider";
 import SoundLayerControls, { SoundQuickStart } from "./sound-layer-controls";
@@ -158,6 +159,29 @@ function DisplayScene({
         ? demoIndex % palettes.length
         : trackPaletteIndex(p.trackKey || "ambient")
     ];
+  const scoreCues = useMemo(
+    () =>
+      prepareVisualScore(lyrics?.trackKey === p.trackKey ? lyrics.cues : []),
+    [lyrics, p.trackKey],
+  );
+  const score = useMemo(
+    () => ({
+      cues: scoreCues,
+      positionMs: position + settings.calibrationMs,
+      playing: p.state === "playing",
+      amount: active ? settings.visualDynamics : 0,
+      intensity: settings.intensity,
+    }),
+    [
+      scoreCues,
+      position,
+      settings.calibrationMs,
+      p.state,
+      settings.visualDynamics,
+      active,
+      settings.intensity,
+    ],
+  );
   const time =
     clock?.toLocaleTimeString("en-US", {
       timeZone: settings.circadian.timezone,
@@ -190,6 +214,7 @@ function DisplayScene({
     >
       <div className="palette-backdrop" />
       <AmbientVisuals
+        score={score}
         prism={settings.prism}
         palette={palette}
         identity={p.trackKey || "ambient"}
@@ -200,6 +225,7 @@ function DisplayScene({
       />
       {!isSleep && settings.soundLayer.enabled && (
         <SoundLayerCanvas
+          score={score}
           controls={settings.soundLayer}
           visual={model.visual}
           palette={palette}
@@ -480,6 +506,26 @@ function Lab({ model }: { model: Model }) {
               </p>
             </fieldset>
           )}
+          <label className="field song-dynamics-control">
+            Song dynamics<span>{settings.visualDynamics}%</span>
+            <input
+              type="range"
+              aria-label="Song dynamics"
+              min={0}
+              max={100}
+              value={settings.visualDynamics}
+              onChange={(event) =>
+                model.updateSettings({
+                  visualDynamics: Number(event.target.value),
+                })
+              }
+            />
+          </label>
+          <p className="helper">
+            Phrase swells, repeated-line emphasis, open instrumental breaks and
+            a fresh color sweep for each song. Uses lyrics and album colors; no
+            microphone needed. Zero keeps the original ambient motion.
+          </p>
           <SoundLayerControls
             settings={settings.soundLayer}
             visual={model.visual}

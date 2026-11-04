@@ -669,3 +669,35 @@
 .preset-prism[data-still="true"] * {
   animation-play-state: paused !important;
 }
+.score-glow {
+  position: absolute;
+  inset: -10%;
+  background: radial-gradient(
+    ellipse at 60% 40%,
+    var(--accent),
+    transparent 55%
+  );
+  opacity: calc(var(--phrase-light, 0) * 0.5);
+  transform: scale(var(--phrase-scale, 1));
+  transition:
+    opacity 0.16s linear,
+    transform 0.2s linear;
+}
+.ambient-visuals[data-renderer="css"] .ambient-nebula {
+  scale: var(--phrase-scale, 1);
+  transition: scale 0.2s linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .score-glow {
+    display: none;
+  }
+  .ambient-visuals[data-renderer="css"] .ambient-nebula {
+    scale: 1;
+  }
+}
+.preset-prism[data-still="true"] .score-glow {
+  display: none;
+}
+.preset-prism[data-still="true"] .ambient-nebula {
+  scale: 1 !important;
+}

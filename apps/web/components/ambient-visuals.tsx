@@ -1,4 +1,9 @@
 import { memo, useState } from "react";
+import {
+  emptyVisualFrame,
+  writeVisualScore,
+  type VisualScoreSource,
+} from "../../../packages/motion-engine/visual-score";
 import GenerativeCanvas from "./generative-canvas";
 import type { Intensity } from "../../../packages/motion-engine/index";
 import {
@@ -35,7 +40,9 @@ function AmbientVisuals({
   palette,
   identity,
   prism,
+  score,
 }: {
+  score: VisualScoreSource;
   visual: AmbientVisual;
   intensity: Intensity;
   focus: "lyrics" | "ambient";
@@ -47,6 +54,7 @@ function AmbientVisuals({
   const [gpu, setGpu] = useState(false);
   if (sleep) return null;
   const fallback = visualPresets[visual].fallback;
+  const frame = writeVisualScore(emptyVisualFrame(), score);
   return (
     <div
       className={`ambient-visuals visual-${fallback.toLowerCase()} preset-${visual.toLowerCase()}`}
@@ -56,17 +64,22 @@ function AmbientVisuals({
       data-focus={focus}
       data-still={visual === "Prism" && prism.motion === 0 ? "true" : "false"}
       style={
-        visual === "Prism"
-          ? ({
-              "--prism-light": prism.light / 70,
-              "--prism-size": prism.facetSize / 100,
-              "--ambient-tempo": 100 / Math.max(1, prism.motion),
-            } as React.CSSProperties)
-          : undefined
+        {
+          "--phrase-light": frame.phrase,
+          "--phrase-scale": 1 + frame.phrase * 0.12 + frame.space * 0.12,
+          ...(visual === "Prism"
+            ? {
+                "--prism-light": prism.light / 70,
+                "--prism-size": prism.facetSize / 100,
+                "--ambient-tempo": 100 / Math.max(1, prism.motion),
+              }
+            : {}),
+        } as React.CSSProperties
       }
       aria-hidden="true"
     >
       <GenerativeCanvas
+        score={score}
         prism={prism}
         visual={visual}
         intensity={intensity}
@@ -74,6 +87,7 @@ function AmbientVisuals({
         identity={identity}
         onReady={setGpu}
       />
+      <div className="score-glow" />
       <div className="ambient-fields">
         <i className="ambient-field field-one" />
         <i className="ambient-field field-two" />

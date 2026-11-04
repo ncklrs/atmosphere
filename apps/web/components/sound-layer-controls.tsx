@@ -119,12 +119,12 @@ export default function SoundLayerControls({
                       ? `Live audio · ${state.label}`
                       : state.phase === "paused"
                         ? `Paused · ${state.label}`
-                        : "Ambient preview · no audio connected"}
+                        : "Ambient / lyric motion · no audio input"}
               </strong>
             </div>
             <p className="helper">
-              The WiiM sends track details, not sound. Connect an input to make
-              the layer react.
+              Song dynamics follows lyrics and song changes automatically. An
+              audio input adds waveform and frequency detail.
             </p>
             <div className="computer-audio-input">
               <button
@@ -230,7 +230,7 @@ export function SoundQuickStart() {
   const connected = !["idle", "error"].includes(state.phase);
   return (
     <div className="sound-quick-start">
-      <span>{connected ? state.label : "Hear the new layer react"}</span>
+      <span>{connected ? state.label : "Optional audio preview"}</span>
       <button
         type="button"
         onClick={() => {

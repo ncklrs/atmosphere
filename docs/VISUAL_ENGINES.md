@@ -72,3 +72,36 @@ the sound draw loop. Reduced motion draws a static idle composition, even if aud
 is playing. Sleep unmounts the canvas and disconnects its audio input. Lyrics dim
 the layer automatically, with additional attenuation in high contrast; musical
 breaks retain the background and layer without album art or filler.
+
+## Song-directed atmosphere
+
+Native visuals now use a shared lyric direction model in addition to the ambient
+clock. **Song dynamics** in the lab controls its strength (75% default; zero keeps
+independent ambient motion). Existing Whisper/Flow/Pulse settings scale phrase
+movement. No capture, microphone permission, audio-context creation, or additional
+network service is required; direct Spotify Connect playback stays unchanged.
+
+- Actual lyric line starts create attack/release swells, color filaments, camera
+  expansion and shifting focal points. Phrase progress creates a broader ribbon.
+- Repeated normalized lyric lines receive extra emphasis. This detects repetition,
+  not musical choruses or sound energy.
+- Real enhanced-LRC word tags add smaller accents. Line-only lyrics never generate
+  invented word timestamps, beats, or FFT samples.
+- Empty lines and timed gaps open the field into wider ambient space without art.
+  Missing lyrics retain ambient motion and song transitions. Lyric direction also
+  works when the user hides the lyric text.
+- Track identity changes trigger a soft 4.2-second color sweep and a new procedural
+  composition. Duration, album/lyrics enrichment, pauses and seeks do not retrigger
+  the sweep. Rapid skips replace its target immediately.
+- All three palette colors reach the shader; the dominant fixed blue tint is removed.
+  Album colors settle faster, while preset transitions retain a visible background.
+  Original presets, auto-per-song rotation and artwork cache fencing are retained.
+
+Phrase/word values derive from playback position, including lyric calibration.
+Pauses freeze that direction and seeks reproduce it. Shader uniforms and the
+optional sound-layer canvas share the same model without per-frame React state.
+The sound layer gently changes scale even with no audio input and keeps its ambient
+label. CSS fallback receives phrase glow/expansion. High contrast keeps its existing
+lyric protection; reduced motion suppresses all new movement. Prism's zero-motion
+control also suppresses shader direction and song sweeps. GPU pixel/frame budgets,
+hidden-page suspension, context recovery and sleep teardown remain in effect.

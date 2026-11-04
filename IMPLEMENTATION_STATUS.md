@@ -228,3 +228,36 @@ real FFT response, immediate video release, audio cleanup/navigation, no-audio
 sharing, cancellation and late grants. The reduced-motion check now compares
 rendered pixels so a harmless hydration redraw is not mistaken for animation.
 The live control was visually inspected with capture left disconnected.
+
+## Song-directed atmosphere — 2026-11-04
+
+Added a shared visual direction model driven by synchronized lyric phrases,
+repeated-line frequency, actual enhanced-LRC word timestamps and playback position.
+The native shaders use it for phrase swells, focal drift, expanding camera depth,
+color filaments and flowing ribbons. Timed lyric gaps and empty lines open into
+ambient space, including when lyric text is hidden. Missing lyrics retain the
+ambient clock. The optional sound layer also breathes with the same phrase model
+while keeping its ambient label and requiring no audio input.
+
+All three palette colors now reach the GPU, the fixed blue tint is removed, and
+album colors settle faster. Song identity changes produce a soft 4.2-second color
+sweep and seeded composition; enrichment, seeks and pauses never replay it. Rapid
+skips replace the target immediately. Preset transitions retain a visible field.
+Six original backgrounds and the existing auto-per-song preference are retained.
+
+The lab's **Song dynamics** slider defaults to 75%, persists locally and scales
+to zero. Whisper/Flow/Pulse also scale phrase motion. Position-based phrase values
+freeze on pause and reproduce seeks. Reduced motion disables the added motion;
+Prism's zero-motion setting also suppresses shader direction and song sweeps.
+Existing lyric contrast, pixel/frame budgets, hidden-page handling, context
+recovery and sleep behavior remain covered. CSS fallback gains phrase glow and
+expansion. No new audio source, microphone permission, hardware, or service is
+required; the user's direct Spotify Connect route is unchanged.
+
+Validation: **58 unit/integration tests and 56 browser tests passed (114 total)**,
+plus lint, typecheck and production build. New tests verify repeated-line weighting,
+real-word-only accents, deterministic seeks/pauses, empty/timed gaps, settings bounds,
+and actual GPU pixel changes with the independent ambient clock held fixed. Browser
+checks cover zero-strength persistence, rapid song swaps, enrichment without
+retriggering the sweep, reduced motion and art-free breaks. The isolated original
+demo was visually inspected. Real phone GPU performance remains unmeasured.

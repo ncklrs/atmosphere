@@ -21,6 +21,7 @@ export interface Settings {
   intensity: Intensity;
   ambientVisual: AmbientVisual;
   autoVisuals: boolean;
+  visualDynamics: number;
   soundLayer: SoundLayerSettings;
   prism: PrismControls;
   composition: string;
@@ -35,6 +36,7 @@ export const defaults: Settings = {
   intensity: "Flow",
   ambientVisual: "Orbit",
   autoVisuals: false,
+  visualDynamics: 75,
   soundLayer: defaultSoundLayer,
   prism: defaultPrism,
   composition: "Auto",
@@ -93,6 +95,7 @@ export function validateSettings(input: unknown): Settings {
       : null;
   return {
     autoVisuals: s.autoVisuals === true,
+    visualDynamics: bounded(s.visualDynamics, defaults.visualDynamics),
     soundLayer: validateSoundLayer(s.soundLayer),
     prism: {
       light: bounded(s.prism?.light, defaultPrism.light),

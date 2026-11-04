@@ -120,6 +120,16 @@ Prism has independent Light intensity, Motion speed and Facet size sliders in th
 
 Enable **Auto per song** in the visual lab to cycle through all six backgrounds on track changes. Rotation stays fixed during lyric updates, pauses, seeks, missing lyrics and duration/artwork enrichment. The current background survives reloads and navigation. Turning the setting off holds the current background; choosing a preset manually also turns auto off. Existing settings keep manual mode until you opt in.
 
+### Song-directed visuals
+
+**Song dynamics** in the lab adds phrase swells, shifting focal points, repeated-line
+emphasis, flowing color ribbons, open instrumental breaks and a fresh color sweep
+when the song changes. Album colors have more presence across all six native
+backgrounds. This works with direct Spotify Connect using lyric timing and track
+metadata, with no microphone or extra hardware. The slider defaults to 75%; zero
+keeps independent ambient motion. Reduced motion and Prism's zero-speed control
+suppress the added movement. These effects do not claim live audio/beat detection.
+
 ### Waviz sound-layer prototype
 
 The lab's optional **sound layer** adds Halo, Ribbons, or Stardust over the six

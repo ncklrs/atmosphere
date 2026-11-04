@@ -1,6 +1,11 @@
 "use client";
 import { memo, useEffect, useRef } from "react";
 import { fragmentShader, vertexShader } from "../lib/visuals/shaders";
+import {
+  emptyVisualFrame,
+  writeVisualScore,
+  type VisualScoreSource,
+} from "../../../packages/motion-engine/visual-score";
 import type { Intensity } from "../../../packages/motion-engine/index";
 import {
   visualPresets,
@@ -8,6 +13,7 @@ import {
   type PrismControls,
 } from "../../../packages/design-system/visuals";
 interface Props {
+  score: VisualScoreSource;
   visual: AmbientVisual;
   prism: PrismControls;
   intensity: Intensity;
@@ -20,8 +26,10 @@ const rgb = (hex: string) =>
 function GenerativeCanvas(props: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const latest = useRef(props);
+  const sampledAt = useRef(0);
   useEffect(() => {
     latest.current = props;
+    sampledAt.current = performance.now();
   }, [props]);
   useEffect(() => {
     const element = canvas.current!;
@@ -53,17 +61,22 @@ function GenerativeCanvas(props: Props) {
     let shaders: WebGLShader[] = [];
     let width = 1,
       height = 1;
-    const colors = new Float32Array([0.7, 0.6, 1, 0.3, 0.2, 0.5]);
+    const colors = new Float32Array([
+      0.7, 0.6, 1, 0.3, 0.2, 0.5, 0.12, 0.08, 0.25,
+    ]);
     const target = new Float32Array(colors);
     const accentView = colors.subarray(0, 3);
     const pigmentView = colors.subarray(3, 6);
+    const shadowView = colors.subarray(6, 9);
+    const scoreFrame = emptyVisualFrame();
+    let songAge = 10;
     let ready = false;
     let activeVisual = latest.current.visual;
     let reveal = 1;
     element.dataset.activeVisual = activeVisual;
     element.dataset.transition = "settled";
-    let paletteKey = "",
-      identity = "",
+    let paletteRef: readonly string[] | null = null;
+    let identity = "",
       seed = 0,
       seedTarget = 0;
     let locations: Record<string, WebGLUniformLocation | null> = {};
@@ -110,16 +123,26 @@ function GenerativeCanvas(props: Props) {
               : 0.75);
       if (!reduced.matches) prismElapsed += (dt * current.prism.motion) / 100;
       const still = current.visual === "Prism" && current.prism.motion === 0;
-      const key = current.palette.join(":");
-      if (key !== paletteKey) {
-        target.set([...rgb(current.palette[0]), ...rgb(current.palette[1])]);
-        paletteKey = key;
+      if (current.palette !== paletteRef) {
+        target.set([
+          ...rgb(current.palette[0]),
+          ...rgb(current.palette[1]),
+          ...rgb(current.palette[2] ?? current.palette[1]),
+        ]);
+        if (!paletteRef) colors.set(target);
+        paletteRef = current.palette;
       }
-      for (let i = 0; i < 6; i++)
+      for (let i = 0; i < 9; i++)
         colors[i] +=
           (target[i] - colors[i]) *
-          (reduced.matches || still ? 1 : Math.min(1, dt * 0.6));
+          (reduced.matches || still ? 1 : Math.min(1, dt * 1.2));
       if (identity !== current.identity) {
+        if (
+          identity &&
+          identity !== "ambient" &&
+          current.identity !== "ambient"
+        )
+          songAge = 0;
         identity = current.identity;
         let hash = 0;
         for (let i = 0; i < identity.length; i++)
@@ -129,6 +152,42 @@ function GenerativeCanvas(props: Props) {
       seed +=
         (seedTarget - seed) *
         (reduced.matches || still ? 1 : Math.min(1, dt * 0.4));
+      songAge = Math.min(10, songAge + dt);
+      const scorePosition =
+        current.score.positionMs +
+        (current.score.playing
+          ? Math.min(120, Math.max(0, stamp - sampledAt.current))
+          : 0);
+      writeVisualScore(
+        scoreFrame,
+        current.score,
+        scorePosition,
+        reduced.matches || still,
+      );
+      const dynamics =
+        reduced.matches || still ? 0 : current.score.amount / 100;
+      const songProgress = Math.min(1, songAge / 4.2);
+      const songLight = dynamics * Math.sin(Math.PI * songProgress);
+      gl.uniform4f(
+        locations.score,
+        scoreFrame.phrase,
+        scoreFrame.word,
+        scoreFrame.drive,
+        scoreFrame.space,
+      );
+      gl.uniform3f(
+        locations.direction,
+        scoreFrame.x,
+        scoreFrame.y,
+        scoreFrame.chapter,
+      );
+      gl.uniform3f(locations.song, songProgress, songLight, dynamics);
+      element.dataset.scorePhase = scoreFrame.phase;
+      element.dataset.dynamics = String(dynamics);
+      element.dataset.phrase = scoreFrame.phrase.toFixed(3);
+      element.dataset.songTransition =
+        songLight > 0.001 ? "changing" : "settled";
+      element.dataset.songIdentity = identity;
       gl.uniform2f(locations.resolution, width, height);
       gl.uniform1f(locations.time, reduced.matches ? 12 : elapsed);
       if (reduced.matches) {
@@ -156,6 +215,7 @@ function GenerativeCanvas(props: Props) {
       gl.uniform1f(locations.seed, seed);
       gl.uniform3fv(locations.accent, accentView);
       gl.uniform3fv(locations.pigment, pigmentView);
+      gl.uniform3fv(locations.shadow, shadowView);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       if (!ready) {
         ready = true;
@@ -207,6 +267,10 @@ function GenerativeCanvas(props: Props) {
         gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
         locations = Object.fromEntries(
           [
+            "score",
+            "direction",
+            "song",
+            "shadow",
             "resolution",
             "time",
             "mode",
