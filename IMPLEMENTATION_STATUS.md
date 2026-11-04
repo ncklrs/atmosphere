@@ -196,3 +196,35 @@ and phone-sized controls. Physical microphone capture and phone GPU performance
 remain unverified. CodeRabbit remains signed out; source review and local checks
 were completed. The live lab is enabled on Halo over Voyage with input disconnected,
 and the existing native Auto per song preference is retained.
+
+## Free computer audio and explicit input selection — 2026-11-04
+
+Added **Use computer audio** in the lab. A click opens the browser's display-media
+picker with tab/system audio requested; no microphone API is used. Returned video
+tracks stop immediately, and only live audio tracks feed the local Waviz analyzer.
+Nothing is recorded or uploaded, and no captured audio is played back. Missing
+audio and cancelled/blocked sharing produce actionable errors. Stop, ended audio,
+sleep, disabling the layer, and stale grants after cancellation release resources.
+The session persists across Lab/Display navigation and starts disconnected on reload.
+
+A free WiiM route is documented: music plays locally on the Mac, its output goes
+to the Mini over AirPlay, and browser-shared local audio drives the sound layer.
+Direct Spotify Connect playback on the WiiM is outside this local capture path.
+Browser/OS support and AirPlay output capture/synchronization still need a live
+check with the user's permission; synthetic tests do not establish that path.
+AirPlay latency may make local visuals lead the speakers. No purchase or driver
+installation was performed or required for this experiment.
+
+**Choose another audio input** offers specific virtual/line devices already
+connected. Listing never starts capture and no device is auto-selected. Exact ID
+constraints and returned-device verification prevent default microphone fallback.
+Device changes refresh the list; missing inputs stop capture. This remains an
+optional path; hardware shopping was removed after the user's no-purchase request.
+
+Validation: lint, typecheck and production build passed. The complete prior run
+passed **49 browser tests and 53 unit/integration tests**; after adding computer
+sharing, all **15 sound-layer browser tests** passed, including four new checks for
+real FFT response, immediate video release, audio cleanup/navigation, no-audio
+sharing, cancellation and late grants. The reduced-motion check now compares
+rendered pixels so a harmless hydration redraw is not mistaken for animation.
+The live control was visually inspected with capture left disconnected.

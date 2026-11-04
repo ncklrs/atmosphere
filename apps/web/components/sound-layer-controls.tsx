@@ -7,6 +7,7 @@ import {
 } from "../../../packages/design-system/sound-layer";
 import type { AmbientVisual } from "../../../packages/design-system/visuals";
 import { useAudioSession } from "./audio-input-provider";
+import WiredInput from "./wired-input";
 export default function SoundLayerControls({
   settings,
   visual,
@@ -17,7 +18,9 @@ export default function SoundLayerControls({
   onChange: (patch: Partial<SoundLayerSettings>) => void;
 }) {
   const { session, state } = useAudioSession();
-  const active = ["demo", "file", "microphone"].includes(state.phase);
+  const active = ["demo", "file", "microphone", "line-in", "computer"].includes(
+    state.phase,
+  );
   const change = (patch: Partial<SoundLayerSettings>) => {
     if (patch.enabled === false) session.stop();
     onChange(patch);
@@ -123,6 +126,32 @@ export default function SoundLayerControls({
               The WiiM sends track details, not sound. Connect an input to make
               the layer react.
             </p>
+            <div className="computer-audio-input">
+              <button
+                type="button"
+                disabled={state.phase === "loading"}
+                onClick={() => void session.startComputerAudio()}
+              >
+                Use computer audio
+              </button>
+              <p className="helper">
+                Free, no microphone or extra hardware. Play music on this Mac
+                and send its output to the WiiM using AirPlay. In desktop
+                Chrome, share a music tab or enable system audio in the sharing
+                picker. Spotify Connect playing directly on the WiiM cannot be
+                heard here.
+              </p>
+              <p className="helper">
+                The browser asks to share a tab, window, or screen. Atmosphere
+                immediately stops the video track and analyzes audio locally;
+                nothing is recorded or uploaded. Other system sounds may also
+                affect the visuals.
+              </p>
+            </div>
+            <details>
+              <summary>Choose another audio input</summary>
+              <WiredInput />
+            </details>
             <div className="audio-source-actions">
               <button
                 type="button"

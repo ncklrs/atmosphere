@@ -39,13 +39,17 @@ function AudioIndicator() {
     <div className="audio-session-indicator">
       <span>
         <i className="status-dot on" />
-        {state.phase === "microphone"
-          ? "Microphone → visuals"
-          : state.phase === "loading"
-            ? "Connecting audio…"
-            : state.phase === "paused"
-              ? "Local audio paused"
-              : state.label}
+        {state.phase === "computer"
+          ? "Computer audio → visuals"
+          : state.phase === "line-in"
+            ? "Wired input → visuals"
+            : state.phase === "microphone"
+              ? "Microphone → visuals"
+              : state.phase === "loading"
+                ? "Connecting audio…"
+                : state.phase === "paused"
+                  ? "Local audio paused"
+                  : state.label}
       </span>
       <button
         type="button"

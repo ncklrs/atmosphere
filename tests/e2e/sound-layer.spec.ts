@@ -307,9 +307,12 @@ test("reduced motion stays static, disabling the layer stops audio, and sleep te
   await page.goto("/lab");
   const canvas = page.locator("canvas.sound-layer");
   await expect(canvas).toHaveAttribute("data-input", "reduced");
-  const first = await canvas.getAttribute("data-frame");
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  // Reduced motion may repaint the same image after hydration/resize; compare pixels,
+  // not draw-call counts, to detect actual animation.
+  const first = await fingerprint(canvas);
   await page.waitForTimeout(350);
-  expect(await canvas.getAttribute("data-frame")).toBe(first);
+  expect(await fingerprint(canvas)).toEqual(first);
   await page.getByRole("slider", { name: "Visualizer audio volume" }).fill("0");
   await page
     .getByRole("button", { name: "Play test audio", exact: true })
@@ -436,5 +439,433 @@ test("unavailable Web Audio leaves an actionable error and keeps the original ba
     "data-renderer",
     "webgl",
   );
+  await expect(page.locator(".audio-session-indicator")).toHaveCount(0);
+});
+
+async function mockWiredInput(
+  page: import("@playwright/test").Page,
+  mismatch = false,
+) {
+  await page.addInitScript(
+    ({ mismatch }) => {
+      const hardware = {
+        present: true,
+        calls: [] as MediaStreamConstraints[],
+        stream: null as MediaStream | null,
+      };
+      Object.assign(window, { __wired: hardware });
+      Object.defineProperty(navigator.mediaDevices, "enumerateDevices", {
+        configurable: true,
+        value: async () => [
+          {
+            kind: "audioinput",
+            deviceId: "default",
+            label: "Default microphone",
+          },
+          {
+            kind: "audioinput",
+            deviceId: "builtin-mic",
+            label: "Built-in microphone",
+          },
+          ...(hardware.present
+            ? [
+                {
+                  kind: "audioinput",
+                  deviceId: "usb-line",
+                  label: "USB Stereo Line Input",
+                },
+              ]
+            : []),
+        ],
+      });
+      Object.defineProperty(navigator.mediaDevices, "getUserMedia", {
+        configurable: true,
+        value: async (constraints: MediaStreamConstraints) => {
+          hardware.calls.push(constraints);
+          const context = new AudioContext(),
+            destination = context.createMediaStreamDestination(),
+            oscillator = context.createOscillator();
+          oscillator.frequency.value = 220;
+          oscillator.connect(destination);
+          oscillator.start();
+          void context.resume();
+          const stream = destination.stream;
+          hardware.stream = stream;
+          const track = stream.getAudioTracks()[0],
+            stop = track.stop.bind(track),
+            settings = track.getSettings.bind(track);
+          track.getSettings = () => ({
+            ...settings(),
+            deviceId: mismatch ? "builtin-mic" : "usb-line",
+          });
+          track.stop = () => {
+            stop();
+            oscillator.stop();
+            void context.close();
+          };
+          return stream;
+        },
+      });
+    },
+    { mismatch },
+  );
+}
+
+test("wired input requires a specific selection, analyzes only that input, and releases it on unplug", async ({
+  page,
+}) => {
+  await mockWiredInput(page);
+  await page.goto("/lab");
+  await page.getByText("Choose another audio input", { exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Connect wired input", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page
+      .getByLabel("Wired audio input")
+      .getByRole("option", { name: "Default microphone", exact: true }),
+  ).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { __wired: { calls: unknown[] } }).__wired.calls
+          .length,
+    ),
+  ).toBe(0);
+  await page.getByLabel("Wired audio input").selectOption("usb-line");
+  await page
+    .getByRole("button", { name: "Connect wired input", exact: true })
+    .click();
+  await expect(page.locator(".audio-state")).toContainText(
+    "Live audio · USB Stereo Line Input",
+  );
+  await expect(page.locator("canvas.sound-layer")).toHaveAttribute(
+    "data-input",
+    "audio",
+  );
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { __wired: { calls: MediaStreamConstraints[] } })
+          .__wired.calls,
+    ),
+  ).toEqual([
+    {
+      audio: {
+        deviceId: { exact: "usb-line" },
+        channelCount: { ideal: 2 },
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+      video: false,
+    },
+  ]);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { __soundTest: { peak: number } }).__soundTest
+            .peak,
+      ),
+    )
+    .toBeGreaterThan(0);
+  await page.getByRole("link", { name: "Display", exact: true }).click();
+  await expect(page.locator(".audio-session-indicator")).toContainText(
+    "Wired input → visuals",
+  );
+  await page.getByRole("link", { name: "Visual lab", exact: true }).click();
+  await page.getByText("Choose another audio input", { exact: true }).click();
+  await expect(page.getByLabel("Wired audio input")).toHaveValue("usb-line");
+  await page.evaluate(() => {
+    (window as unknown as { __wired: { present: boolean } }).__wired.present =
+      false;
+    navigator.mediaDevices.dispatchEvent(new Event("devicechange"));
+  });
+  await expect(page.locator(".audio-session-indicator")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Connect wired input", exact: true }),
+  ).toBeDisabled();
+  expect(
+    await page.evaluate(
+      () =>
+        (
+          window as unknown as { __wired: { stream: MediaStream } }
+        ).__wired.stream.getAudioTracks()[0].readyState,
+    ),
+  ).toBe("ended");
+});
+
+test("a wired request never falls back to a different microphone returned by the browser", async ({
+  page,
+}) => {
+  await mockWiredInput(page, true);
+  await page.goto("/lab");
+  await page.getByText("Choose another audio input", { exact: true }).click();
+  await page.getByLabel("Wired audio input").selectOption("usb-line");
+  await page
+    .getByRole("button", { name: "Connect wired input", exact: true })
+    .click();
+  await expect(
+    page.locator(".audio-source-card").getByRole("alert"),
+  ).toContainText("selected wired input could not be opened or confirmed");
+  expect(
+    await page.evaluate(
+      () =>
+        (
+          window as unknown as {
+            __wired: { stream: MediaStream; calls: unknown[] };
+          }
+        ).__wired.stream.getAudioTracks()[0].readyState,
+    ),
+  ).toBe("ended");
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { __wired: { calls: unknown[] } }).__wired.calls
+          .length,
+    ),
+  ).toBe(1);
+  await expect(page.locator("canvas.sound-layer")).toHaveAttribute(
+    "data-input",
+    "ambient",
+  );
+  await expect(page.locator(".audio-session-indicator")).toHaveCount(0);
+});
+
+test("unplugged wired devices produce an error without starting the default input", async ({
+  page,
+}) => {
+  await mockWiredInput(page);
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator.mediaDevices, "getUserMedia", {
+      configurable: true,
+      value: () =>
+        Promise.reject(
+          new DOMException("Device removed", "OverconstrainedError"),
+        ),
+    }),
+  );
+  await page.goto("/lab");
+  await page.getByText("Choose another audio input", { exact: true }).click();
+  await page.getByLabel("Wired audio input").selectOption("usb-line");
+  await page
+    .getByRole("button", { name: "Connect wired input", exact: true })
+    .click();
+  await expect(
+    page.locator(".audio-source-card").getByRole("alert"),
+  ).toContainText("selected wired input could not be opened or confirmed");
+  await expect(page.locator(".audio-session-indicator")).toHaveCount(0);
+});
+
+test("computer audio uses real FFT without microphone capture and releases video and audio", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const capture = {
+      stream: null as MediaStream | null,
+      options: null as unknown,
+      mic: 0,
+    };
+    Object.assign(window, { __computer: capture });
+    Object.defineProperty(navigator.mediaDevices, "getUserMedia", {
+      configurable: true,
+      value: () => {
+        capture.mic++;
+        throw new Error("No microphone");
+      },
+    });
+    Object.defineProperty(navigator.mediaDevices, "getDisplayMedia", {
+      configurable: true,
+      value: async (options: unknown) => {
+        capture.options = options;
+        const context = new AudioContext(),
+          destination = context.createMediaStreamDestination(),
+          oscillator = context.createOscillator();
+        oscillator.connect(destination);
+        oscillator.start();
+        void context.resume();
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 10;
+        const video = canvas.captureStream().getVideoTracks()[0];
+        const stream = new MediaStream([
+          ...destination.stream.getAudioTracks(),
+          video,
+        ]);
+        capture.stream = stream;
+        const track = stream.getAudioTracks()[0],
+          stop = track.stop.bind(track);
+        track.stop = () => {
+          stop();
+          oscillator.stop();
+          void context.close();
+        };
+        return stream;
+      },
+    });
+  });
+  await page.goto("/lab");
+  await page
+    .getByRole("button", { name: "Use computer audio", exact: true })
+    .click();
+  await expect(page.locator(".audio-state")).toContainText(
+    "Live audio · Computer audio",
+  );
+  await expect(page.locator("canvas.sound-layer")).toHaveAttribute(
+    "data-input",
+    "audio",
+  );
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { __soundTest: { peak: number } }).__soundTest
+            .peak,
+      ),
+    )
+    .toBeGreaterThan(0);
+  expect(
+    await page.evaluate(() => {
+      const c = (
+        window as unknown as {
+          __computer: { stream: MediaStream; options: unknown; mic: number };
+        }
+      ).__computer;
+      return {
+        video: c.stream.getVideoTracks()[0].readyState,
+        audio: c.stream.getAudioTracks()[0].readyState,
+        options: c.options,
+        mic: c.mic,
+      };
+    }),
+  ).toMatchObject({
+    video: "ended",
+    audio: "live",
+    mic: 0,
+    options: { video: true, systemAudio: "include", windowAudio: "system" },
+  });
+  await page.getByRole("link", { name: "Display", exact: true }).click();
+  await expect(page.locator(".audio-session-indicator")).toContainText(
+    "Computer audio → visuals",
+  );
+  await page
+    .getByRole("button", { name: "Stop visualizer audio", exact: true })
+    .click();
+  expect(
+    await page.evaluate(
+      () =>
+        (
+          window as unknown as { __computer: { stream: MediaStream } }
+        ).__computer.stream.getAudioTracks()[0].readyState,
+    ),
+  ).toBe("ended");
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (
+          window as unknown as { __soundTest: { contexts: AudioContext[] } }
+        ).__soundTest.contexts.every((c) => c.state === "closed"),
+      ),
+    )
+    .toBe(true);
+});
+
+test("a screen shared without audio gives clear guidance and releases its video", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator.mediaDevices, "getDisplayMedia", {
+      configurable: true,
+      value: async () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 10;
+        const stream = canvas.captureStream();
+        Object.assign(window, { __noAudio: stream });
+        return stream;
+      },
+    });
+  });
+  await page.goto("/lab");
+  await page
+    .getByRole("button", { name: "Use computer audio", exact: true })
+    .click();
+  await expect(
+    page.locator(".audio-source-card").getByRole("alert"),
+  ).toContainText("No shared audio was provided");
+  expect(
+    await page.evaluate(() =>
+      (window as unknown as { __noAudio: MediaStream }).__noAudio
+        .getTracks()
+        .every((t) => t.readyState === "ended"),
+    ),
+  ).toBe(true);
+  await expect(page.locator(".audio-session-indicator")).toHaveCount(0);
+});
+
+test("cancelled computer sharing stays disconnected without microphone fallback", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator.mediaDevices, "getDisplayMedia", {
+      configurable: true,
+      value: () =>
+        Promise.reject(new DOMException("Cancelled", "NotAllowedError")),
+    });
+    Object.defineProperty(navigator.mediaDevices, "getUserMedia", {
+      configurable: true,
+      value: () => {
+        throw new Error("Unexpected microphone request");
+      },
+    });
+  });
+  await page.goto("/lab");
+  await page
+    .getByRole("button", { name: "Use computer audio", exact: true })
+    .click();
+  await expect(
+    page.locator(".audio-source-card").getByRole("alert"),
+  ).toContainText("cancelled or blocked");
+  await expect(page.locator(".audio-session-indicator")).toHaveCount(0);
+});
+
+test("a late computer sharing grant is stopped after cancellation", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator.mediaDevices, "getDisplayMedia", {
+      configurable: true,
+      value: () =>
+        new Promise<MediaStream>((resolve) => {
+          Object.assign(window, {
+            __grantComputer: () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = canvas.height = 10;
+              const stream = canvas.captureStream();
+              Object.assign(window, { __lateComputer: stream });
+              resolve(stream);
+            },
+          });
+        }),
+    });
+  });
+  await page.goto("/lab");
+  await page
+    .getByRole("button", { name: "Use computer audio", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Stop visualizer audio", exact: true })
+    .click();
+  await page.evaluate(() =>
+    (window as unknown as { __grantComputer: () => void }).__grantComputer(),
+  );
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (window as unknown as { __lateComputer: MediaStream }).__lateComputer
+          .getTracks()
+          .every((t) => t.readyState === "ended"),
+      ),
+    )
+    .toBe(true);
   await expect(page.locator(".audio-session-indicator")).toHaveCount(0);
 });

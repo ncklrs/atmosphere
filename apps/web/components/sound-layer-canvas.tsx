@@ -62,7 +62,8 @@ function SoundLayerCanvas(props: Props) {
         { width: w, height: h } = element;
       const phase = p.session.getSnapshot().phase;
       const connected =
-        ["demo", "file", "microphone"].includes(phase) && !!p.session.analyzer;
+        ["demo", "file", "microphone", "line-in", "computer"].includes(phase) &&
+        !!p.session.analyzer;
       const reactive = connected && !reduced.matches;
       const style = resolveSoundStyle(p.controls.style, p.visual);
       const placement =

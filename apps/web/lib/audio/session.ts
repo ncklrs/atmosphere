@@ -6,6 +6,8 @@ export type AudioPhase =
   | "demo"
   | "file"
   | "microphone"
+  | "computer"
+  | "line-in"
   | "paused"
   | "error";
 export interface AudioState {
@@ -13,12 +15,14 @@ export interface AudioState {
   label: string;
   error: string;
   volume: number;
+  inputDeviceId: string;
 }
 const initialState: AudioState = {
   phase: "idle",
   label: "Ambient preview",
   error: "",
   volume: 12,
+  inputDeviceId: "",
 };
 export class AudioSession {
   analyzer: AudioAnalyzer | null = null;
@@ -75,7 +79,12 @@ export class AudioSession {
     this.context = null;
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.objectUrl = null;
-    this.update({ phase: "idle", label: "Ambient preview", error: "" });
+    this.update({
+      phase: "idle",
+      label: "Ambient preview",
+      error: "",
+      inputDeviceId: "",
+    });
   };
   setVolume = (volume: number) => {
     const value = Number.isFinite(volume)
@@ -124,15 +133,17 @@ export class AudioSession {
     output.connect(context.destination);
     this.output = output;
   }
-  private failure(ticket: number, error: unknown) {
+  private failure(ticket: number, error: unknown, wired = false) {
     if (ticket !== this.generation) return;
     const name = error instanceof Error ? error.name : "";
     const message =
       name === "NotAllowedError"
         ? "Audio access was not allowed. You can try again or use a local audio file."
-        : name === "NotFoundError"
-          ? "No microphone was found. Try a local audio file."
-          : "Could not start this audio source. Try another file or input.";
+        : wired
+          ? "The selected wired input could not be opened or confirmed. Reconnect the interface, refresh inputs, and select it again."
+          : name === "NotFoundError"
+            ? "No microphone was found. Try a local audio file."
+            : "Could not start this audio source. Try another file or input.";
     this.stop();
     this.update({ phase: "error", label: "Audio unavailable", error: message });
   }
@@ -218,7 +229,101 @@ export class AudioSession {
       this.failure(ticket, error);
     }
   };
-  startMicrophone = async () => {
+  startComputerAudio = async () => {
+    let ticket = this.generation + 1;
+    try {
+      if (!navigator.mediaDevices?.getDisplayMedia) {
+        this.stop();
+        this.update({
+          phase: "error",
+          error:
+            "Computer audio sharing is unavailable here. Open localhost in desktop Chrome and try again.",
+        });
+        return;
+      }
+      const setup = this.begin("Computer audio");
+      ticket = setup.ticket;
+      // Invoke the picker during the click, before awaiting module initialization.
+      const options: DisplayMediaStreamOptions & {
+        systemAudio: string;
+        windowAudio: string;
+        selfBrowserSurface: string;
+        surfaceSwitching: string;
+      } = {
+        video: true,
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+        systemAudio: "include",
+        windowAudio: "system",
+        selfBrowserSurface: "exclude",
+        surfaceSwitching: "exclude",
+      };
+      const stream = await navigator.mediaDevices.getDisplayMedia(options);
+      if (ticket !== this.generation) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      this.stream = stream;
+      // No video frames are rendered, stored, or transmitted. Release video immediately.
+      stream.getVideoTracks().forEach((track) => track.stop());
+      const tracks = stream
+        .getAudioTracks()
+        .filter((track) => track.readyState === "live");
+      if (!tracks.length) {
+        this.stop();
+        this.update({
+          phase: "error",
+          error:
+            "No shared audio was provided. Try again with Share audio enabled in the browser picker. Music must be playing on this computer.",
+        });
+        return;
+      }
+      tracks.forEach((track) => {
+        track.onended = () => {
+          if (ticket === this.generation) this.stop();
+        };
+      });
+      const source = setup.context.createMediaStreamSource(
+        new MediaStream(tracks),
+      );
+      this.source = source;
+      if (!(await this.analyze(setup.context, source, ticket, setup.resumed)))
+        return;
+      this.update({ phase: "computer", label: "Computer audio", error: "" });
+    } catch (error) {
+      if (ticket !== this.generation) return;
+      this.stop();
+      this.update({
+        phase: "error",
+        error:
+          error instanceof Error && error.name === "NotAllowedError"
+            ? "Computer audio sharing was cancelled or blocked. You can try again when ready."
+            : "Could not share computer audio. Try desktop Chrome on localhost and enable audio in its sharing picker.",
+      });
+    }
+  };
+  startMicrophone = () => this.startCapture("microphone", "Room microphone");
+  startLineIn = (deviceId: string, label: string) => {
+    if (!deviceId || deviceId === "default" || deviceId === "communications") {
+      this.stop();
+      this.update({
+        phase: "error",
+        error:
+          "Select a specific USB line input first. The default microphone will not be used.",
+      });
+      return Promise.resolve();
+    }
+    return this.startCapture("line-in", label || "Wired line input", deviceId);
+  };
+  private async startCapture(
+    kind: "microphone" | "line-in",
+    label: string,
+    deviceId?: string,
+  ) {
+    const wired = kind === "line-in";
     let ticket = this.generation + 1;
     try {
       if (!navigator.mediaDevices?.getUserMedia) {
@@ -226,15 +331,30 @@ export class AudioSession {
         this.update({
           phase: "error",
           error:
-            "Microphone input needs localhost or HTTPS and a browser with audio capture. Local-file playback is available here.",
+            "Audio-input capture needs localhost or HTTPS and a supported browser. Local-file playback is available here.",
         });
         return;
       }
-      const setup = this.begin("Room microphone");
+      if (
+        wired &&
+        !navigator.mediaDevices.getSupportedConstraints?.().deviceId
+      ) {
+        this.stop();
+        this.update({
+          phase: "error",
+          error:
+            "This browser cannot select an exact audio input. Use a current browser with device selection support.",
+        });
+        return;
+      }
+      const setup = this.begin(label);
       ticket = setup.ticket;
       const { context, resumed } = setup;
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
+          ...(wired
+            ? { deviceId: { exact: deviceId! }, channelCount: { ideal: 2 } }
+            : {}),
           echoCancellation: false,
           noiseSuppression: false,
           autoGainControl: false,
@@ -246,6 +366,12 @@ export class AudioSession {
         return;
       }
       this.stream = stream;
+      // Fail closed if the browser cannot confirm the exact wired device.
+      if (
+        wired &&
+        stream.getAudioTracks()[0]?.getSettings().deviceId !== deviceId
+      )
+        throw new Error("Input device mismatch");
       stream.getTracks().forEach((track) => {
         track.onended = () => {
           if (ticket === this.generation) this.stop();
@@ -254,10 +380,15 @@ export class AudioSession {
       const source = context.createMediaStreamSource(stream);
       this.source = source;
       if (!(await this.analyze(context, source, ticket, resumed))) return;
-      // Microphone input is analyzed locally and NEVER connected to speakers.
-      this.update({ phase: "microphone", label: "Room microphone", error: "" });
+      // Captured inputs are analyzed only; neither is connected to speakers.
+      this.update({
+        phase: kind,
+        label,
+        inputDeviceId: deviceId ?? "",
+        error: "",
+      });
     } catch (error) {
-      this.failure(ticket, error);
+      this.failure(ticket, error, wired);
     }
-  };
+  }
 }

@@ -128,7 +128,9 @@ size, response, and placement controls persist locally; lyrics dim the layer.
 Milkdrop and its dependencies have been removed.
 
 Choose **Play test audio** for a quiet original loop, **Choose audio file** for local
-playback, or **Use microphone** for room audio. Audio starts only when you choose an
+playback, **Use computer audio** for shared tab/system sound, or **Use microphone**
+for room audio. The [free Mac/AirPlay setup](docs/WIIM_COMPUTER_AUDIO.md) explains
+how computer playback can feed the WiiM and the visuals without extra hardware. Audio starts only when you choose an
 input. Files and microphone audio stay local; microphone input never plays through
 the speakers. The Stop control disconnects all input resources. Audio persists
 between Lab and Display navigation but never automatically reconnects on reload.

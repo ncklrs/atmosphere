@@ -159,3 +159,53 @@
     align-self: start;
   }
 }
+.wired-input {
+  border: 1px solid var(--line);
+  padding: 0 12px 14px;
+  margin: 16px 0 20px;
+  border-radius: 4px;
+}
+.wired-input legend {
+  color: var(--accent);
+  padding: 0 5px;
+  font-size: 10px;
+}
+.wired-input select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: #17151f;
+  color: var(--foreground);
+  font: inherit;
+}
+.audio-device-error {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.computer-audio-input {
+  margin: 18px 0;
+}
+.audio-source-card summary {
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--muted);
+  margin: 14px 0;
+}
+.computer-audio-input > button {
+  width: 100%;
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #c7b4ff80;
+  border-radius: 3px;
+  color: var(--accent);
+  background: #c7b4ff12;
+  font-size: 11px;
+  cursor: pointer;
+}
+.computer-audio-input > button:hover {
+  background: #c7b4ff20;
+}
