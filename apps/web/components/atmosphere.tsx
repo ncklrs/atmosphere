@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MotionConfig, useReducedMotion } from "motion/react";
+import { useArtworkPalette } from "../lib/use-artwork-palette";
 import { useAtmosphere } from "../lib/use-atmosphere";
 import { composition, timeline } from "../../../packages/motion-engine/index";
 import { schedule, type AmbientScene } from "../../../packages/circadian/index";
@@ -135,7 +136,11 @@ function DisplayScene({
     : null;
   const chosen =
     settings.composition === "Auto" ? layout : settings.composition;
+  const extractedPalette = useArtworkPalette(
+    settings.source === "gateway" ? p.artworkUrl : null,
+  );
   const palette =
+    extractedPalette ??
     palettes[
       settings.source === "demo"
         ? demoIndex % palettes.length
@@ -162,6 +167,7 @@ function DisplayScene({
       data-layout={chosen}
       data-scene={scene}
       data-state={p.state}
+      data-palette={extractedPalette ? "artwork" : "fallback"}
       style={
         {
           "--accent": palette[0],

@@ -250,3 +250,81 @@ describe("gateway integration", () => {
     });
   });
 });
+
+describe("rapid live track changes", () => {
+  it("publishes metadata before lyrics and discards a slow previous-track lookup", async () => {
+    let title = "First";
+    const pending = new Map<
+      string,
+      (
+        value: null | {
+          trackKey: string;
+          cues: { startMs: number; text: string }[];
+          provider: string;
+          attribution: string;
+          timing: "line";
+        },
+      ) => void
+    >();
+    const { port } = await mock((req, res) => {
+      const command = new URL(req.url!, "http://localhost").searchParams.get(
+        "command",
+      );
+      res.end(
+        JSON.stringify(
+          command === "getMetaInfo"
+            ? { title, artist: "Fixture" }
+            : {
+                status: "play",
+                Title: title,
+                Artist: "Fixture",
+                totlen: "90000",
+                curpos: "4000",
+              },
+        ),
+      );
+    });
+    const gateway = await startGateway({
+      port: 0,
+      wiim: { host: "127.0.0.1", port, protocols: ["http"] },
+      pollMs: 30,
+      lyrics: true,
+      lyricProvider: {
+        name: "Fixture",
+        resolve: (track) =>
+          new Promise((resolve) => pending.set(track.title, resolve)),
+      },
+    });
+    resources.push(() => gateway.close());
+    await waitFor(
+      () =>
+        gateway.snapshot().playback.title === "First" && pending.has("First"),
+    );
+    const firstKey = gateway.snapshot().playback.trackKey;
+    title = "Second";
+    await waitFor(
+      () =>
+        gateway.snapshot().playback.title === "Second" && pending.has("Second"),
+    );
+    expect(gateway.snapshot().lyrics).toBeNull();
+    pending.get("First")!({
+      trackKey: firstKey,
+      cues: [{ startMs: 0, text: "Old fixture" }],
+      provider: "Fixture",
+      attribution: "Fixture",
+      timing: "line",
+    });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(gateway.snapshot().lyrics).toBeNull();
+    const secondKey = gateway.snapshot().playback.trackKey;
+    pending.get("Second")!({
+      trackKey: secondKey,
+      cues: [{ startMs: 0, text: "New fixture" }],
+      provider: "Fixture",
+      attribution: "Fixture",
+      timing: "line",
+    });
+    await waitFor(() => gateway.snapshot().lyrics?.trackKey === secondKey);
+    expect(gateway.snapshot().lyrics?.cues[0].text).toBe("New fixture");
+  });
+});

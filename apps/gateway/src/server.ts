@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { WebSocketServer, WebSocket } from "ws";
@@ -17,12 +18,17 @@ import {
   WiiMAdapter,
   type ProbeOptions,
 } from "../../../packages/adapter-wiim/index";
-import { LyricResolver, LrclibProvider } from "../../../packages/lyrics/index";
+import {
+  LyricResolver,
+  LrclibProvider,
+  type LyricProvider,
+} from "../../../packages/lyrics/index";
 import { SoftwareBrightness } from "../../../packages/circadian/brightness";
 export interface GatewayOptions {
   port?: number;
   wiim?: ProbeOptions;
   lyrics?: boolean;
+  lyricProvider?: LyricProvider;
   origin?: string;
   pollMs?: number;
   idlePollMs?: number;
@@ -39,11 +45,13 @@ export async function startGateway(options: GatewayOptions = {}) {
     timer: ReturnType<typeof setTimeout> | undefined;
   const adapter = options.wiim ? new WiiMAdapter(options.wiim) : null;
   const resolver = options.lyrics
-    ? new LyricResolver(new LrclibProvider())
+    ? new LyricResolver(options.lyricProvider ?? new LrclibProvider())
     : null;
+  const sessionId = randomUUID();
   const origin = options.origin ?? "http://127.0.0.1:3000";
   const snapshot = (): Snapshot => ({
     type: "snapshot",
+    sessionId,
     playback: {
       ...playback,
       positionMs: positionAt(playback, performance.now()),
@@ -190,8 +198,8 @@ export async function startGateway(options: GatewayOptions = {}) {
     timer = setTimeout(
       poll,
       playback.state === "playing"
-        ? (options.pollMs ?? 1000)
-        : (options.idlePollMs ?? 3000),
+        ? (options.pollMs ?? 500)
+        : (options.idlePollMs ?? 1000),
     );
   }
   await new Promise<void>((resolve, reject) => {

@@ -28,6 +28,7 @@ export interface LyricResult {
 }
 export interface Snapshot {
   type: "snapshot";
+  sessionId?: string;
   playback: Playback;
   lyrics: LyricResult | null;
   connected: boolean;
@@ -41,6 +42,8 @@ export function parseSnapshot(value: unknown): Snapshot | null {
   if (
     s.type !== "snapshot" ||
     typeof s.connected !== "boolean" ||
+    (s.sessionId !== undefined &&
+      (typeof s.sessionId !== "string" || s.sessionId.length > 128)) ||
     !Number.isFinite(s.sentAt) ||
     !p
   )

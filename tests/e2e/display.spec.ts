@@ -1,4 +1,4 @@
-import { test, expect, type WebSocketRoute } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { demoPlayback } from "../../packages/fixtures/index";
 const settings = {
@@ -130,14 +130,15 @@ test("settings sleep override and diagnostics are transparent", async ({
   await page.getByRole("link", { name: "Diagnostics", exact: true }).click();
   await expect(page.getByText("Unverified · disabled").first()).toBeVisible();
 });
-test("gateway source connects and survives websocket reconnect", async ({
+test("gateway source connects and recovers after an HTTP outage", async ({
   page,
 }) => {
-  const sockets: WebSocketRoute[] = [];
-  await page.routeWebSocket("ws://127.0.0.1:8787/events", (ws) => {
-    ws.connectToServer();
-    sockets.push(ws);
-  });
+  let offline = false;
+  await page.route("**/api/gateway/state", (route) =>
+    offline
+      ? route.fulfill({ status: 503, json: { error: "unavailable" } })
+      : route.continue(),
+  );
   await page.goto("/settings");
   await page
     .getByRole("button", { name: "Local gateway", exact: true })
@@ -149,9 +150,11 @@ test("gateway source connects and survives websocket reconnect", async ({
   await expect(
     page.locator("dd").filter({ hasText: "Original demo" }),
   ).toBeVisible();
-  const count = sockets.length;
-  sockets.at(-1)!.close();
-  await expect.poll(() => sockets.length).toBeGreaterThan(count);
+  offline = true;
+  await expect(
+    page.getByText("Reconnecting", { exact: false }).first(),
+  ).toBeVisible();
+  offline = false;
   await expect(
     page.getByText("Gateway connected", { exact: false }).first(),
   ).toBeVisible();
@@ -173,16 +176,16 @@ test("offline demo has no external asset dependencies", async ({
 test("missing lyrics stay ambient instead of showing album art or filler", async ({
   page,
 }) => {
-  await page.routeWebSocket("ws://127.0.0.1:8787/events", (socket) =>
-    socket.send(
-      JSON.stringify({
+  await page.route("**/api/gateway/state", (route) =>
+    route.fulfill({
+      json: {
         type: "snapshot",
         playback: demoPlayback(0, 0, 10),
         lyrics: null,
         connected: true,
         sentAt: Date.now(),
-      }),
-    ),
+      },
+    }),
   );
   await page.goto("/settings");
   await page

@@ -12,7 +12,7 @@ pnpm build
 pnpm start
 ```
 
-Open `http://127.0.0.1:3000/display` on that machine. First verify the offline demo, then stop the processes and restart with `WIIM_HOST` set. Settings → Local gateway switches the browser to the stream. Do not forward ports 3000 or 8787 to the internet.
+Open `http://127.0.0.1:3000/display` on that machine. First verify the offline demo, then stop the processes and restart with `WIIM_HOST` set. Settings → Local gateway switches the browser to same-origin playback observations. Do not forward ports 3000 or 8787 to the internet.
 
 ## 2. Configure process startup
 
@@ -54,12 +54,12 @@ Complete the power-cycle, Wi-Fi outage and browser restart tests in HARDWARE_VAL
 | Observation                | Check                                                                                                           |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | Another app appears        | Port 3000 is occupied; use `PORT=3210 WEB_ORIGIN=http://127.0.0.1:3210 pnpm start` and the matching browser URL |
-| Gateway reconnects forever | Confirm process is running on 8787 and browser origin exactly matches WEB_ORIGIN                                |
+| Gateway reconnects forever | Confirm the gateway is running on 8787, or the same GATEWAY_PORT used by the Next process                       |
 | Device unavailable         | Check private IPv4, LAN routing, Mini firmware, and self-signed TLS opt-in                                      |
 | No lyrics                  | Confirm opt-in provider, internet, duration/metadata match; missing coverage is an expected fallback            |
 | No album art               | Only approved HTTPS Spotify CDN hosts are allowed; failed/other hosts use original local art                    |
 | Very dark picture          | Check circadian timezone, scene override, sleep times and the lab's contrast override                           |
 | Service cannot find pnpm   | Set PATH to the actual installed Node and pnpm executable directories                                           |
-| Browser tests cannot start | Stop your running app/gateway; tests require dedicated ports 3210 and 8787                                      |
+| Browser tests cannot start | Tests use isolated ports 3212 and 8788; keep the live app/gateway running                                       |
 
 Public cloud hosting is outside this local kiosk design. A remote browser's `127.0.0.1` points to that browser's own machine. Do not change bind addresses to solve this without designing authentication, transport and network access deliberately.

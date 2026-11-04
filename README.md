@@ -36,7 +36,7 @@ Select **Settings → Local gateway** in the browser. No device address or crede
 WIIM_HOST=192.168.1.42 WIIM_ALLOW_SELF_SIGNED=true pnpm dev
 ```
 
-TLS verification is never disabled globally. Firmware requiring mutual TLS is not implemented. Unsupported firmware or sources show unavailable metadata/artwork instead of fabricated information. Real hardware compatibility has not been verified; follow [the hardware checklist](docs/HARDWARE_VALIDATION.md).
+TLS verification is never disabled globally. Firmware requiring mutual TLS is not implemented. Unsupported firmware or sources show unavailable metadata/artwork instead of fabricated information. This household WiiM Mini has been checked with read-only playback and synchronized lyrics; additional firmware still needs validation. Follow [the hardware checklist](docs/HARDWARE_VALIDATION.md).
 
 ## Lyrics and timing
 
@@ -59,7 +59,7 @@ Gateway position is extrapolated before transmission and anchored to the browser
 - Circadian scenes use optional approximate coordinates and an IANA timezone. Without usable solar events, fallback times are 08:00 / 18:00 / 21:00. Default sleep is 23:30–06:30. Overrides expire in one hour, and music wake is optional.
 - Brightness is **software intensity only**. Black sleep does not reduce an LCD's physical backlight or switch panel power. DDC/CI, HDMI-CEC and physical wake are disabled and unverified.
 - Lyric mode has no album art, including the footer thumbnail. Musical breaks and unavailable lyrics leave just the ambient backdrop, without filler text or an album card. Disabling lyrics gives an ambient-only view. Idle scenes use the generative visuals and a subtly shifting clock, without an album card.
-- Album art accepts HTTPS URLs from a small fixed Spotify CDN allowlist. The browser loads these directly, without a gateway URL proxy. Other URLs and failed downloads use local artwork. The current palette uses curated colors selected deterministically from track identity, with a contrast override; arbitrary album-derived palette extraction is deferred.
+- Artwork colors come from a small, in-browser sample of the current album image on the fixed HTTPS Spotify CDN allowlist. The extracted palette colors the ambient scene without displaying an album card. Missing art, failed downloads or CORS restrictions use a deterministic curated fallback. Images are cached in memory; a late image from a previous track cannot recolor the current song. High contrast keeps lyric text white.
 - Settings stay in this browser's local storage. Demo assets and fonts have no runtime third-party dependency. Live WiiM needs the LAN; opt-in lyrics and live CDN art need internet access.
 
 ## Verify and run a production kiosk
@@ -74,7 +74,7 @@ pnpm test:e2e
 pnpm start
 ```
 
-The browser suite owns port 3210 and gateway port 8787; stop a manually running gateway before running it. It captures all five requested viewport sizes. It will not reuse another app's server. See [deployment](docs/DEPLOYMENT.md) for Linux desktop autostart and service examples, and [security](docs/SECURITY.md) for the trust boundaries.
+The browser suite owns separate ports 3212 and 8788, forces the offline fixture source, and never stops or replaces the live gateway on 8787. It captures all five requested viewport sizes. It will not reuse another app's server. See [deployment](docs/DEPLOYMENT.md) for Linux desktop autostart and service examples, and [security](docs/SECURITY.md) for the trust boundaries.
 
 ## Repository map
 
@@ -103,3 +103,5 @@ Read [the comprehensive implementation plan](IMPLEMENTATION_PLAN.md) and [the ev
 - [SunCalc](https://github.com/mourner/suncalc)
 
 Font binaries are self-hosted using `next/font/local`; their OFL license texts are included in `apps/web/fonts`. The synthetic demo material is original to this project. Hardware descriptions/prices in the supplied brief are unverified reference material, not current purchasing advice.
+
+Live browsers read same-origin `/api/gateway/state` and `/api/gateway/capabilities`; Next forwards only those fixed observations to the loopback gateway. This also works from a trusted same-WiFi phone using the laptop’s web address. Gateway session identifiers let the UI recover immediately after a gateway restart, even when revision counters reset. Track metadata updates independently of lyric and artwork loading.

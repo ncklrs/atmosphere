@@ -126,16 +126,16 @@ test("high contrast protects lyrics without dimming the ambient-only scene", asy
 test("idle device uses the generative clock scene without an album card", async ({
   page,
 }) => {
-  await page.routeWebSocket("ws://127.0.0.1:8787/events", (socket) =>
-    socket.send(
-      JSON.stringify({
+  await page.route("**/api/gateway/state", (route) =>
+    route.fulfill({
+      json: {
         type: "snapshot",
         playback: { ...emptyPlayback(), state: "stopped", revision: 1 },
         lyrics: null,
         connected: true,
         sentAt: Date.now(),
-      }),
-    ),
+      },
+    }),
   );
   await page.goto("/settings");
   await page

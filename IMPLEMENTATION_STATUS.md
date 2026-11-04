@@ -28,7 +28,7 @@ Development host: macOS, Node.js 23.7.0, pnpm 9.12.0, local Playwright Chromium.
 - Desktop, portrait, compact and lab captures have been visually inspected. The lab adjusts the preview's aspect ratio for forced Portrait/Canvas compositions.
 - CodeRabbit CLI is installed but signed out; no external CodeRabbit review was performed. Local lint, type checking, tests and source review remain the evidence for this delivery.
 
-Final local results: **38 unit/integration tests passed across 6 files; 26 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
+Final local results: **41 unit/integration tests passed across 7 files; 29 Playwright browser tests passed.** Installation with the frozen lockfile also succeeded entirely from the package cache. CI is configured but is only verified when GitHub reports a run result.
 
 ## Unverified or deferred
 
@@ -40,7 +40,7 @@ Final local results: **38 unit/integration tests passed across 6 files; 26 Playw
 | 60fps on Lenovo Tiny                              | Requires browser performance traces on the actual kiosk                                                                                                       |
 | Physical brightness / DDC/CI / power / wake       | Disabled; software darkening and black sleep do not establish panel backlight or power savings                                                                |
 | Live lyric coverage and rights                    | LRCLIB remains opt-in; no claim of commercial lyric licensing or universal coverage                                                                           |
-| Arbitrary album artwork / extracted palettes      | Fixed HTTPS Spotify CDN allowlist only; curated palettes and contrast fallback; external image palette extraction deferred                                    |
+| Arbitrary album artwork / extracted palettes      | Fixed HTTPS Spotify CDN allowlist only; browser canvas palette extraction with curated fallback; no arbitrary URL proxy                                       |
 | mDNS discovery                                    | Deferred; explicit SSDP probe and manual private-IP fallback implemented                                                                                      |
 | Ambient light sensor                              | Optional extension point in the brief; no sensor hardware or driver implemented                                                                               |
 | Unattended OS boot/login and autostart            | Reviewed example files provided; not installed or exercised on the user's Lenovo                                                                              |
@@ -59,7 +59,7 @@ pnpm test:e2e
 pnpm start
 ```
 
-Browser tests own ports 3210 and 8787 and do not reuse another server. Gateway tests bind temporary loopback ports. Restricted execution environments may require permission for these local listeners. Browser mode is offline demo by default; select Local gateway to observe a configured Mini.
+Browser tests own isolated ports 3212 and 8788 and do not reuse another server. Gateway tests bind temporary loopback ports. Restricted execution environments may require permission for these local listeners. Browser mode is offline demo by default; select Local gateway to observe a configured Mini.
 
 ## Lyric choreography refinement
 
@@ -71,8 +71,14 @@ Read-only device identity, extended playback status and metadata now respond thr
 
 ## Continuous ambient visuals
 
-Added three procedural ambient presets to the visual lab: Bloom (moving light fields), Tide (layered contours), and Orbit (sculptural orbital forms and particles). Their CSS transform animations continue independently of the playback timeline, including through instrumental gaps; the same layers become quieter under lyric text. Existing Whisper/Flow/Pulse preferences control motion speed/density. Reduced motion disables the animations; high contrast suppresses them behind lyrics while allowing full ambient-only visuals; sleep unmounts the engine. Curated palettes are selected deterministically from track identity without external image requests. No beat detection, audio capture or FFT signal is claimed. Disabling lyrics during playback now leaves ambient visuals without an album card. Idle scenes use the generative engine and clock instead of an album card. Existing playback source, lyric calibration and scheduling preferences are preserved.
+Added three procedural ambient presets to the visual lab: Bloom (moving light fields), Tide (layered contours), and Orbit (sculptural orbital forms and particles). Their CSS transform animations continue independently of the playback timeline, including through instrumental gaps; the same layers become quieter under lyric text. Existing Whisper/Flow/Pulse preferences control motion speed/density. Reduced motion disables the animations; high contrast suppresses them behind lyrics while allowing full ambient-only visuals; sleep unmounts the engine. Demo palettes and missing-art fallbacks are selected deterministically from track identity; live album images now supply a browser-extracted palette when available. No beat detection, audio capture or FFT signal is claimed. Disabling lyrics during playback now leaves ambient visuals without an album card. Idle scenes use the generative engine and clock instead of an album card. Existing playback source, lyric calibration and scheduling preferences are preserved.
 
 ## Angled typography and deeper cosmic visuals
 
 Lyric phrases enter from alternating sides and above/below the canvas, rotate in opposite directions, and retain a slight angle while holding. Rotation uses the same pure playback clock as translation and scale, so pause freezes it and seeks reproduce it. Reduced motion removes all lyric transforms. Orbit now includes luminous nebula layers, a textured ringed planet, a rotating accretion disk, a moon, and 72 drifting stars. Bloom gains luminous color ribbons; Tide has brighter contours and deeper color fields. Continuous layers animate transforms and opacity without per-frame React renders or external assets. High contrast keeps a dimmed cosmic scene behind shadowed white text and full visuals in ambient breaks. Unit tests verify entry direction, angular settling, seek determinism, and reduced motion; browser tests verify actual rendered angle changes and the six existing viewport bounds. Build, lint, typecheck, 38 unit/integration tests and 26 browser tests pass.
+
+## Album colors and live song transitions
+
+The live scene now samples allowlisted album artwork in a 48×48 browser canvas and derives an accent, dominant color and dark shade. Light fields, nebula and ring colors use that palette; no album card is shown. Bounded memory caching, CORS/timeouts and curated fallback keep missing artwork nonblocking. Late image results cannot recolor a different current song.
+
+Removed initial demo playback from the live view. Browser observations now use fixed same-origin Next routes, which work on the same-WiFi phone preview without browser loopback addresses or cross-origin gateway failures. A gateway session identifier resets revision fencing safely after restarts. Status and metadata requests run in parallel; the gateway polls at 500 ms during playback, independently of lyric resolution. Regression tests cover rapid switches with slow old lyric lookups, clearing previous cues, gateway restarts with lower revision counters, artwork changes and failed artwork loads. The browser suite now runs on isolated ports 3212/8788 with WiiM/provider environment cleared, preventing test demo snapshots from replacing the household display’s live source. The user also confirmed a quick live switch was picked up.

@@ -174,27 +174,20 @@ export class WiiMAdapter {
         );
     for (const attempt of attempts) {
       try {
-        const status = await requestCommand(
-          this.options,
-          attempt.protocol,
-          attempt.command,
-        );
+        const [observed, data] = await Promise.all([
+          requestCommand(this.options, attempt.protocol, attempt.command).then(
+            (status) => ({ status, sampledAt: now() }),
+          ),
+          requestCommand(this.options, attempt.protocol, "getMetaInfo").catch(
+            () => ({}) as Record<string, unknown>,
+          ),
+        ]);
+        const { status, sampledAt } = observed;
         if (!("status" in status)) continue;
-        const sampledAt = now();
-        let meta: Record<string, unknown> = {};
-        try {
-          const data = await requestCommand(
-            this.options,
-            attempt.protocol,
-            "getMetaInfo",
-          );
-          meta =
-            data.metaData && typeof data.metaData === "object"
-              ? (data.metaData as Record<string, unknown>)
-              : data;
-        } catch {
-          /* Older firmware can omit metadata. */
-        }
+        const meta =
+          data.metaData && typeof data.metaData === "object"
+            ? (data.metaData as Record<string, unknown>)
+            : data;
         this.capability = {
           ...attempt,
           metadata: Object.keys(meta).length > 0,

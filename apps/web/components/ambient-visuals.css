@@ -363,9 +363,21 @@
       #07091899 23%,
       transparent 35%
     ),
-    radial-gradient(ellipse at 60% 40%, #e1c4ff77, transparent 27%),
-    radial-gradient(ellipse at 35% 60%, #b850dd99, transparent 42%),
-    radial-gradient(ellipse at 65% 50%, #436bf0aa, transparent 48%);
+    radial-gradient(
+      ellipse at 60% 40%,
+      color-mix(in srgb, var(--accent), transparent 53%),
+      transparent 27%
+    ),
+    radial-gradient(
+      ellipse at 35% 60%,
+      color-mix(in srgb, var(--album-1), transparent 25%),
+      transparent 42%
+    ),
+    radial-gradient(
+      ellipse at 65% 50%,
+      color-mix(in srgb, var(--accent), var(--album-1) 55%),
+      transparent 48%
+    );
   mask-image: radial-gradient(ellipse, #000 12%, transparent 65%);
 }
 .cloud-one {
@@ -384,8 +396,16 @@
       #090c2099 21%,
       transparent 34%
     ),
-    radial-gradient(ellipse at 35% 50%, #94e9ff99, transparent 27%),
-    radial-gradient(ellipse at 55% 55%, #257cb8cc, transparent 43%),
+    radial-gradient(
+      ellipse at 35% 50%,
+      color-mix(in srgb, var(--accent), transparent 40%),
+      transparent 27%
+    ),
+    radial-gradient(
+      ellipse at 55% 55%,
+      color-mix(in srgb, var(--album-1), transparent 15%),
+      transparent 43%
+    ),
     radial-gradient(ellipse at 75% 50%, var(--accent), transparent 42%);
   animation: nebula-unfold calc(31s * var(--ambient-tempo)) ease-in-out infinite
     alternate-reverse;
@@ -400,8 +420,8 @@
   background: radial-gradient(
     ellipse at 50% 50%,
     transparent 20%,
-    #e3b5ff88 28%,
-    #904dcb77 34%,
+    color-mix(in srgb, var(--accent), transparent 47%) 28%,
+    color-mix(in srgb, var(--album-1), transparent 30%) 34%,
     transparent 45%
   );
   animation: nebula-ribbon calc(35s * var(--ambient-tempo)) ease-in-out infinite
@@ -426,9 +446,9 @@
   border-radius: 50%;
   background: radial-gradient(
     ellipse,
-    #e6c8ff66 3%,
-    #a373ff55 22%,
-    #557df333 38%,
+    color-mix(in srgb, var(--accent), transparent 60%) 3%,
+    color-mix(in srgb, var(--accent), transparent 67%) 22%,
+    color-mix(in srgb, var(--album-1), transparent 60%) 38%,
     transparent 64%
   );
   animation: corona-breathe calc(12s * var(--ambient-tempo)) ease-in-out
@@ -445,14 +465,14 @@
   border-radius: 50%;
   background: conic-gradient(
     from 30deg,
-    #9c63ff11,
-    #f0caffcc,
-    #5bbaff66,
-    #713bc822,
-    #c49affcc,
-    #f3d8ffdd,
-    #8460ff33,
-    #9c63ff11
+    color-mix(in srgb, var(--accent), transparent 93%),
+    color-mix(in srgb, var(--accent), transparent 20%),
+    color-mix(in srgb, var(--album-1), transparent 25%),
+    color-mix(in srgb, var(--album-1), transparent 87%),
+    color-mix(in srgb, var(--accent), transparent 20%),
+    color-mix(in srgb, var(--accent), white 20%),
+    color-mix(in srgb, var(--album-1), transparent 80%),
+    color-mix(in srgb, var(--accent), transparent 93%)
   );
   mask-image: radial-gradient(
     circle,
@@ -475,12 +495,16 @@
     repeating-linear-gradient(
       165deg,
       transparent 0 6%,
-      #bda1ff22 7%,
+      color-mix(in srgb, var(--accent), transparent 87%) 7%,
       transparent 10%,
-      #9ccfff33 13%,
+      color-mix(in srgb, var(--accent), transparent 80%) 13%,
       transparent 16%
     ),
-    radial-gradient(ellipse at 25% 35%, #ffe3ff88, transparent 35%);
+    radial-gradient(
+      ellipse at 25% 35%,
+      color-mix(in srgb, var(--accent), transparent 47%),
+      transparent 35%
+    );
   animation: planet-weather calc(28s * var(--ambient-tempo)) ease-in-out
     infinite alternate;
 }
